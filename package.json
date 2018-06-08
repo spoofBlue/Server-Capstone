@@ -1,13 +1,18 @@
 {
   "name": "server-capstone",
   "version": "1.0.0",
-  "description": "Cory's project to showcase server and database learning.",
-  "main": "index.js",
+  "description": "Cory's project to showcase server and database expertise.",
+  "main": "server.js",
   "dependencies": {
     "express": "^4.16.3"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spoofBlue/Server-Capstone"
+  },
   "devDependencies": {},
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
