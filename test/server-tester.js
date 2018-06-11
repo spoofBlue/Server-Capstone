@@ -19,6 +19,7 @@ describe(`Server Test`, function(){
         return chai.request(app)
         .get(`/`)
         .then(function(res) {
+            console.log(res.body);
             expect(res).to.have.status(200);
         })
     });
