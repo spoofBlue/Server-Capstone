@@ -17,22 +17,69 @@
         <p>Hello Index.html</p>
         <section class="login_section">
             <form role="form">
-                <label for="input_username">Username</label>
+                <legend>Login Here.</legend>
+                <label for="input_username">Username:</label>
                 <input type="text" placeholder="bob123" id="input_username" aria-live="assertive" required>
-                <label for="input_password">Username</label>
+                <label for="input_password">Password:</label>
                 <input type="text" placeholder="*****" id="input_password" aria-live="assertive" required>
                 <button class="login_button" title="Log In Button">Log In</button>
             </form>
         </section>
-        <section class="status_section hidden">
+        <section class="access_tabs_section hidden">
             <ul>
-                <li></li>
-                <li></li>
-                <li></li>
+                <li>Status</li>
+                <li>Create Entry</li>
+                <li>Search Entry</li>
+                <li>Log Out</li>
+            </ul>
+        </section>
+        <section class="status_section hidden">
+            <h2>Status Page of Bob Smith</h2>
+            <ul>
+                <li><div></div></li>
+                <li><div></div></li>
+                <li><div></div></li>
             </ul>
         </section>
         <section class="create_entry_section hidden">
             <form role="form">
+                <legend>Create New Entry</legend>
+                <fieldset>
+                    <legend>Is this location a donator or receiver?</legend>
+                    <input type="radio" name="donator_or_receiver" value="donator" class="radio_donator_or_receiver" id="radio_donator" required>
+                    <label for="radio_donator">Donator</label>
+                    <input type="radio" name="donator_or_receiver" value="receiver" class="radio_donator_or_receiver" id="radio_receiver" required>
+                    <label for="radio_receiver">Receiver</label>
+                </fieldset>
+                <fieldset>
+                    <legend>Business Info</legend>
+                        <label for="input_location_name">Business Name:</label>
+                        <input type="text" placeholder="Bob's Diner" id="" required>
+                        <label for="input_location_description">Description:</label>
+                        <input type="text" placeholder="We are a homeless shelter on the south side" id="">
+                </fieldset>
+                <fieldset>
+                    <legend>Address</legend>
+                        <label for="input_location_streetAddress">Street Address:</label>
+                        <input type="text" placeholder="123 Oak Avenue" id="" required>
+                        <label for="input_location_country">Country:</label>
+                        <input type="text" placeholder="United States" id="" required>
+                        <label for="input_location_state">State:</label>
+                        <input type="text" placeholder="Texas" id="" required>
+                        <label for="input_location_zipcode">Zipcode:</label>
+                        <input type="text" placeholder="73439" id="" required>
+                </fieldset>
+                <fieldset>
+                    <legend>Business Info</legend>
+                        <label for="input_location_contact_name">Contact's Name:</label>
+                        <input type="text" placeholder="Bob Smith" id="" required>
+                        <label for="input_location_contact_email">E-mail:</label>
+                        <input type="text" placeholder="bobsmith@email.com" id="" required>
+                        <label for="input_location_contact_phoneNumber">Phone Number:</label>
+                        <input type="text" placeholder="123-456-7890" id="" required>
+                </fieldset>
+                <label for="input_location_foodAvailable">Food Available:</label>
+                <input type="text" placeholder="Several dozen bagels weekly.  Several gallons of milk weekly." id="input_location_foodAvailable" required>
             </form>
         </section>
         <section class="search_entry_section hidden">
