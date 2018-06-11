@@ -63,8 +63,8 @@
             </ul>
         </section>
         <section class="create_entry_section hidden">
+            <h2>Create New Entry</h2>
             <form role="form">
-                <legend>Create New Entry</legend>
                 <fieldset>
                     <legend>Is this location a donator or receiver?</legend>
                     <input type="radio" name="donator_or_receiver" value="donator" class="radio_donator_or_receiver" id="radio_donator" required>
@@ -105,14 +105,27 @@
                 <button class="create_entry_button" title="Create New Entry Button">Create New Entry</button>
             </form>
         </section>
-        <section class="search_entry_section hidden">
+        <section class="search_inquiry_section hidden">
+            <h2>Search Donator/Receiver Entries</h2>
             <form role="form">
                 <fieldset>
-                    <label for="input_contact_name">Contact Name</label>
-                    <input type="text" placeholder="Bob Smith" id="input_contact_name" required>
-                    <button class="create_entry_button">Create Entry</button>
+                    <legend>Search for donators or receivers?</legend>
+                    <input type="radio" name="donator_or_receiver" value="donator" class="radio_donator_or_receiver" id="radio_donator" required>
+                    <label for="radio_donator">Donator</label>
+                    <input type="radio" name="donator_or_receiver" value="receiver" class="radio_donator_or_receiver" id="radio_receiver" required>
+                    <label for="radio_receiver">Receiver</label>
+                </fieldset>
+                <fieldset>
+                    <legend>Location Criteria</legend>
+                    <label for="input_entry_zipcode">Zipcode:</label>
+                    <input type="text" placeholder="73439" id="input_entry_zipcode" required>
+                    <label for="input_mile_radius">Within this many miles:</label>
+                    <input type="text" placeholder="50" id="input_mile_radius" required>
+                    <button class="search_button">Start Search</button>
                 </fieldset>
             </form>
+        </section>
+        <section class="search_results_section hidden">
             <ul>
                 <li class="entry">
                     <h3>Henry's Market</h3><p>Role: Donator</p>
@@ -136,13 +149,15 @@
         </section>
         <section class="view_entry_section hidden">
             <h2>View Entry for Henry's Market.</h2><p>Role: Donator</p>
-                <p>Contact: Bob Smith</p>
+            <h3>Address: 321 Ocean Avenue, Montgomery, AL, 98765</h3>
+            <section class="contact_info">
+                <h3>Contact: Bob Smith</h3>
                 <p>Contact's E-mail: bobsmith@place.com</p>
                 <p>Contact's Phone Number: 123-456-7890</p>
-                <p>Date Created: June 30, 2018</p>
-                <h3>Address: 321 Ocean Avenue, Montgomery, AL, 98765</h3>
-                <p>Food Available: Apple's five dozen. About ten loafs of bread. Ten cakes. Several dozen day-old bagels. Six gallons milk. Some misc.</p>
-                <p>Description: We're a local diner downtown. We typically have extra fruits and breads every couple of weeks.</p>
+            </section>
+            <p>Date Created: June 30, 2018</p> 
+            <p>Description: We're a local diner downtown. We typically have extra fruits and breads every couple of weeks.</p>
+            <p>Food Available: Apple's five dozen. About ten loafs of bread. Ten cakes. Several dozen day-old bagels. Six gallons milk. Some misc.</p>
         </section>
     </main>
 
