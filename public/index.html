@@ -1,2 +1,56 @@
-
-<p>Hello Index.html</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Food Saver</title>
+    <meta charset="utf-8">
+    <meta name="description" value="Give and receive normally wasted food here!">
+    <meta name="viewport" content="width=device-width">
+    <link href="index.css" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+    <header role="header">
+        <h1 role="title">Food Saver</h1>
+        <h2>Reducing food waste; eateries and stores with otherwise wasted food connect with organizations helping the needy.</h2>
+    </header>
+    <main role="main">
+        <p>Hello Index.html</p>
+        <section class="login_section">
+            <form role="form">
+                <label for="input_username">Username</label>
+                <input type="text" placeholder="bob123" id="input_username" aria-live="assertive" required>
+                <label for="input_password">Username</label>
+                <input type="text" placeholder="*****" id="input_password" aria-live="assertive" required>
+                <button class="login_button" title="Log In Button">Log In</button>
+            </form>
+        </section>
+        <section class="status_section hidden">
+            <ul>
+                <li></li>
+                <li></li>
+                <li></li>
+            </ul>
+        </section>
+        <section class="create_entry_section hidden">
+            <form role="form">
+            </form>
+        </section>
+        <section class="search_entry_section hidden">
+            <form role="form">
+                <label for="input_contact_name">Contact Name</label>
+                <input type="text" placeholder="Bob Smith" id="input_contact_name" required>
+                <button class="create_entry_button">Create Entry</button>
+            </form>
+            <ul>
+                <li></li>
+                <li></li>
+                <li></li>
+            </ul>
+        </section>
+        <section class="view_entry_section hidden">
+        </section>
+    </main>
+    
+    <script src="index.js"></script>
+</body>
+</html>
