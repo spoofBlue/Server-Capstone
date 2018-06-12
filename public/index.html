@@ -107,7 +107,7 @@
                 <label for="input_entry_foodAvailable">Food Available:</label>
                 <input type="text" placeholder="Several dozen bagels weekly.  Several gallons of milk weekly." id="input_entry_foodAvailable"
                     required>
-                <button class="create_entry_button" title="Create New Entry Button">Create New Entry</button>
+                <button class="submit_new_entry_button" title="Submit New Entry Button">Create New Entry</button>
             </form>
         </section>
         <section class="search_inquiry_section hidden">
@@ -177,7 +177,7 @@
             <form role="form">
                     <fieldset>
                         <legend>Is this location a donator or receiver?</legend>
-                        <input type="radio" name="donator_or_receiver" value="donator" class="radio_donator_or_receiver" id="radio_donator" required>
+                        <input type="radio" name="donator_or_receiver" value="donator" class="radio_donator_or_receiver" id="radio_donator" checked required>
                         <label for="radio_donator">Donator</label>
                         <input type="radio" name="donator_or_receiver" value="receiver" class="radio_donator_or_receiver" id="radio_receiver" required>
                         <label for="radio_receiver">Receiver</label>
@@ -187,32 +187,32 @@
                         <label for="input_entry_name">Business Name:</label>
                         <input type="text" value="Henry's Market" id="input_entry_name" required>
                         <label for="input_entry_description">Description:</label>
-                        <input type="text" placeholder="We are a homeless shelter on the south side" id="input_entry_description">
+                        <input type="text" value="We are a homeless shelter on the south side" id="input_entry_description">
                     </fieldset>
                     <fieldset>
                         <legend>Address</legend>
                         <label for="input_entry_streetAddress">Street Address:</label>
-                        <input type="text" placeholder="123 Oak Avenue" id="input_entry_streetAddress" required>
+                        <input type="text" value="123 Oak Avenue" id="input_entry_streetAddress" required>
                         <label for="input_entry_country">Country:</label>
-                        <input type="text" placeholder="United States" id="input_entry_country" required>
+                        <input type="text" value="United States" id="input_entry_country" required>
                         <label for="input_entry_state">State:</label>
-                        <input type="text" placeholder="Texas" id="input_entry_state" required>
+                        <input type="text" value="Texas" id="input_entry_state" required>
                         <label for="input_entry_zipcode">Zipcode:</label>
-                        <input type="text" placeholder="73439" id="input_entry_zipcode" required>
+                        <input type="text" value="73439" id="input_entry_zipcode" required>
                     </fieldset>
                     <fieldset>
                         <legend>Business Info</legend>
                         <label for="input_entry_contact_name">Contact's Name:</label>
-                        <input type="text" placeholder="Bob Smith" id="input_entry_contact_name" required>
+                        <input type="text" value="Bob Smith" id="input_entry_contact_name" required>
                         <label for="input_entry_contact_email">E-mail:</label>
-                        <input type="text" placeholder="bobsmith@place.com" id="input_entry_contact_email" required>
+                        <input type="text" value="bobsmith@place.com" id="input_entry_contact_email" required>
                         <label for="input_entry_contact_phoneNumber">Phone Number:</label>
-                        <input type="text" placeholder="123-456-7890" id="input_entry_contact_phoneNumber" required>
+                        <input type="text" value="123-456-7890" id="input_entry_contact_phoneNumber" required>
                     </fieldset>
                     <label for="input_entry_foodAvailable">Food Available:</label>
-                    <input type="text" placeholder="Several dozen bagels weekly.  Several gallons of milk weekly." id="input_entry_foodAvailable"
+                    <input type="text" value="Several dozen bagels weekly.  Several gallons of milk weekly." id="input_entry_foodAvailable"
                         required>
-                    <button class="create_entry_button" title="Create New Entry Button">Create New Entry</button>
+                    <button class="submit_updated_entry_button" title="Submit Updated Entry Button">Update Entry</button>
                 </form>
         </section>
     </main>

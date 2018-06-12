@@ -5,15 +5,16 @@ function main() {
     function intializePage() {
         // handleCreateNewAccountButtonClick();
         // handleSubmitNewAccountButtonClick();
-        // handleUpdateEntryButtonClick();
         handleLoginButton();
         handleStatusTabClick();
         handleCreateEntryTabClick();
         handleSearchEntryTabClick();
         handleLogoutTabClick();
         handleViewEntryButtonClick();
+        handleUpdateEntryButtonClick();
         hanldeSearchButtonClick();
         handleSubmitNewEntryButtonClick();
+        handleSubmitUpdatedEntryButtonClick();
     }
 
     // Instead of the instructions "Load X page HTML", I could instead remove current section HTML and
@@ -36,14 +37,6 @@ function main() {
     *   // Load Status page HTML (with userId). No entries will be on the account.
     *   }
     * 
-    *   function handleUpdateEntryButtonClick() {
-    *   // console.log("handleUpdateEntryButtonClick runs");
-    *   // When user clicks on the Update Entry button on the Status, Search, or View Entry pages:
-    *   //
-    *   //
-    *   //
-    *   //
-    *   }
     */
 
     function handleLoginButton() {
@@ -107,8 +100,18 @@ function main() {
         // 
     }
 
+    function handleUpdateEntryButtonClick() {
+        console.log("handleUpdateEntryButtonClick runs");
+        //When user clicks on the Update Entry button on the Status, Search, or View Entry pages:
+        //(Server -> Make sure still authenticated).
+        // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // Load the Update Entry page HTML (with entryId).
+        // (Server -> GET entries serialized information: almost everything)
+        // Set the values in the respective fields to the entries previous information.  {altenatively, could get this info prior to loading the page}
+    }
+
     function hanldeSearchButtonClick() {
-        console.log("handleSearchButtonClick run");
+        console.log("handleSearchButtonClick runs");
         // When user clicks the Search button on the Search Page:
         // Verify fields are properly filled (ex zipcode is a number, mile radius is a number)
         // If fields not valid. Notify the user. Stop.
@@ -120,7 +123,7 @@ function main() {
     }
 
     function handleSubmitNewEntryButtonClick() {
-        console.log("handleSubmitNewEntryButtonClick run");
+        console.log("handleSubmitNewEntryButtonClick runs");
         // When user clicks the Submit New Entry button on the Create New Entry page:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
@@ -130,9 +133,20 @@ function main() {
         // Load the View Entry page (with entryId and userID).
         // (Server -> GET entries serialized information: almost everything).
         // Display almost everything for the entry.
-        // OPTIONAL If userId matches the entries associated userID, also make the Update Entry button available.
     }
 
+    function handleSubmitUpdatedEntryButtonClick() {
+        console.log("handleSubmitUpdatedEntryButtonClick runs");
+        // When user clicks the Submit Updated Entry button on the Update Entry page:
+        // (Server -> Make sure still authenticated).
+        // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // Verify fields are filled properly (ex zipcode is number, email has @, OPTIONAL phone number verified).
+        // If fields not valid, notify the user. Stop.
+        // (Server => PUT the updated information into this entry in Entries).
+        // Load the View Entry page (with entryId and userID).
+        // (Server -> GET entries serialized information: almost everything).
+        // Display almost everything for the entry.
+    }
 
 
     $(intializePage());
