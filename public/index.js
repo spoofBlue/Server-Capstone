@@ -47,7 +47,7 @@ function main() {
         $(".login_button").click(function(event) {
             event.preventDefault();
             console.log("handleLoginButton runs");
-            const username = 
+            const username = "";
         });
         // When user clicks the login button: 
         // Verify through API the username and password are valid. (check database with find(), authenticate, attach JWT)
