@@ -45,8 +45,9 @@ function main() {
 
     function handleLoginButton() {
         $("login_button").click(function(event) {
+            event.preventDefault();
             console.log("handleLoginButton runs");
-        })
+        });
         // When user clicks the login button: 
         // Verify through API the username and password are valid. (check database with find(), authenticate, attach JWT)
         // If failure, let user know. Adding a short <p>.
@@ -57,10 +58,10 @@ function main() {
     }
 
     function handleStatusTabClick() {
-        
         $("status_tab").click(function(event) {
+            event.preventDefault();
             console.log("handleStatusTabClick runs");
-        })
+        });
         // When user clicks the Status Tab:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
@@ -71,10 +72,9 @@ function main() {
     }
 
     function handleCreateEntryTabClick() {
-        
         $("create_entry_tab").click(function(event) {
             console.log("handleCreateEntryTab runs");
-        })
+        });
         // When user clicks the Create Entry Tab:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
@@ -84,7 +84,9 @@ function main() {
     }
 
     function handleSearchEntryTabClick() {
-        console.log("handleSearchEntryTab runs");
+        $("search_tab").click(function(event) {
+            console.log("handleSearchEntryTab runs");
+        });
         // When user clicks the Search Entry Tab:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
@@ -92,7 +94,9 @@ function main() {
     }
 
     function handleLogoutTabClick() {
-        console.log("handleLogoutTabClick runs");
+        $("logout_tab").click(function(event) {
+            console.log("handleLogoutTabClick runs");
+        });
         // When user clicks the Logout Tab:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
@@ -101,7 +105,9 @@ function main() {
     }
 
     function handleViewEntryButtonClick() {
-        console.log("handleViewEntryButtonClick runs");
+        $("view_entry_button").click(function(event) {
+            console.log("handleViewEntryButtonClick runs");
+        });
         // When user clicks the View Entry button (within Status Page or Search Page):
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
