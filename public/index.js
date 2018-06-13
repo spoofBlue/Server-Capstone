@@ -44,9 +44,10 @@ function main() {
     */
 
     function handleLoginButton() {
-        $("login_button").click(function(event) {
+        $(".login_button").click(function(event) {
             event.preventDefault();
             console.log("handleLoginButton runs");
+            const username = 
         });
         // When user clicks the login button: 
         // Verify through API the username and password are valid. (check database with find(), authenticate, attach JWT)
@@ -58,8 +59,7 @@ function main() {
     }
 
     function handleStatusTabClick() {
-        $("status_tab").click(function(event) {
-            event.preventDefault();
+        $(".status_tab").click(function(event) {
             console.log("handleStatusTabClick runs");
         });
         // When user clicks the Status Tab:
@@ -72,7 +72,7 @@ function main() {
     }
 
     function handleCreateEntryTabClick() {
-        $("create_entry_tab").click(function(event) {
+        $(".create_entry_tab").click(function(event) {
             console.log("handleCreateEntryTab runs");
         });
         // When user clicks the Create Entry Tab:
@@ -84,7 +84,7 @@ function main() {
     }
 
     function handleSearchEntryTabClick() {
-        $("search_tab").click(function(event) {
+        $(".search_tab").click(function(event) {
             console.log("handleSearchEntryTab runs");
         });
         // When user clicks the Search Entry Tab:
@@ -94,7 +94,7 @@ function main() {
     }
 
     function handleLogoutTabClick() {
-        $("logout_tab").click(function(event) {
+        $(".logout_tab").click(function(event) {
             console.log("handleLogoutTabClick runs");
         });
         // When user clicks the Logout Tab:
@@ -105,7 +105,7 @@ function main() {
     }
 
     function handleViewEntryButtonClick() {
-        $("view_entry_button").click(function(event) {
+        $(".view_entry_button").click(function(event) {
             console.log("handleViewEntryButtonClick runs");
         });
         // When user clicks the View Entry button (within Status Page or Search Page):
