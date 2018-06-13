@@ -45,9 +45,15 @@ function main() {
 
     function handleLoginButton() {
         $(".login_button").click(function(event) {
-            event.preventDefault();
             console.log("handleLoginButton runs");
-            const username = "";
+            // Make explicit functions instead.
+            const username = $(".input_username").val();
+            const password = $(".input_password").val();
+            window.location = "/status.html";
+            /**return {
+                username : username,
+                password : password
+            }**/
         });
         // When user clicks the login button: 
         // Verify through API the username and password are valid. (check database with find(), authenticate, attach JWT)
@@ -58,6 +64,8 @@ function main() {
         // Display Name, Role, Address, Contact Name, Description.  Then a View Entry button and OPTIONAL Update Entry button.
     }
 
+    
+
     function handleStatusTabClick() {
         $(".status_tab").click(function(event) {
             console.log("handleStatusTabClick runs");
@@ -67,7 +75,8 @@ function main() {
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
         // Load the Status page HTML (with userId).
         // (Server -> GET user's serialized information: fullName, Entries)
-        // For each entry in Entries.sort() with the user's ID: 
+        // For each entry in Entries.sort() with the user's ID (Server -> GET entries associated with userId): 
+
         // Display Name, Role, Address, Contact Name, Description.  Then a View Entry button and OPTIONAL Update Entry button.
     }
 
@@ -119,7 +128,9 @@ function main() {
     }
 
     function handleUpdateEntryButtonClick() {
-        console.log("handleUpdateEntryButtonClick runs");
+        $(".update_entry_tab").click(function(event) {
+            console.log("handleUpdateEntryButtonClick runs");
+        });
         //When user clicks on the Update Entry button on the Status, Search, or View Entry pages:
         //(Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
@@ -129,7 +140,9 @@ function main() {
     }
 
     function hanldeSearchButtonClick() {
-        console.log("handleSearchButtonClick runs");
+        $(".search_button").click(function(event) {
+            console.log("handleSearchButtonClick runs");
+        });
         // When user clicks the Search button on the Search Page:
         // Verify fields are properly filled (ex zipcode is a number, mile radius is a number)
         // If fields not valid. Notify the user. Stop.
@@ -141,7 +154,9 @@ function main() {
     }
 
     function handleSubmitNewEntryButtonClick() {
-        console.log("handleSubmitNewEntryButtonClick runs");
+        $(".submit_new_entry_button").click(function(event) {
+            console.log("handleSubmitNewEntryButtonClick runs");
+        });
         // When user clicks the Submit New Entry button on the Create New Entry page:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
@@ -154,7 +169,9 @@ function main() {
     }
 
     function handleSubmitUpdatedEntryButtonClick() {
-        console.log("handleSubmitUpdatedEntryButtonClick runs");
+        $(".submit_updated_entry_button").click(function(event) {
+            console.log("handleSubmitUpdatedEntryButtonClick runs");
+        });
         // When user clicks the Submit Updated Entry button on the Update Entry page:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
