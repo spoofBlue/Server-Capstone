@@ -20,6 +20,10 @@ function main() {
     // Instead of the instructions "Load X page HTML", I could instead remove current section HTML and
     // add relevant section's HTML
 
+    // Instead of these two steps done before loading a page explicitly: 1. (Server -> Make sure still authenticated).
+    // 2. If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+    // We could only rely on loading page middleware to authenticate before loading.
+
     /*
     *   function handleCreateNewAccountButtonClick() {
     *   console.log("handleCreateNewAccountButton runs");
@@ -40,7 +44,9 @@ function main() {
     */
 
     function handleLoginButton() {
-        console.log("handleLoginButton runs");
+        $("login_button").click(function(event) {
+            console.log("handleLoginButton runs");
+        })
         // When user clicks the login button: 
         // Verify through API the username and password are valid. (check database with find(), authenticate, attach JWT)
         // If failure, let user know. Adding a short <p>.
@@ -51,7 +57,10 @@ function main() {
     }
 
     function handleStatusTabClick() {
-        console.log("handleStatusTabClick runs");
+        
+        $("status_tab").click(function(event) {
+            console.log("handleStatusTabClick runs");
+        })
         // When user clicks the Status Tab:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
@@ -62,7 +71,10 @@ function main() {
     }
 
     function handleCreateEntryTabClick() {
-        console.log("handleCreateEntryTab runs");
+        
+        $("create_entry_tab").click(function(event) {
+            console.log("handleCreateEntryTab runs");
+        })
         // When user clicks the Create Entry Tab:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
