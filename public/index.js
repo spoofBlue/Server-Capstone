@@ -2,6 +2,16 @@
 console.log("Hello index.js");
 
 function main() {
+    
+    let USER;
+    let USER_ENTRIES;
+    let SEARCH_ENTRIES;
+    let STATUS = {
+        "TIMED-OUT" : false ,
+        "SUCCESSFULLY-CREATED" : false ,
+        "SUCCESSFULLY-UPDATED" : false
+    }
+
     function intializePage() {
         // handleCreateNewAccountButtonClick();
         // handleSubmitNewAccountButtonClick();
@@ -17,8 +27,11 @@ function main() {
         handleSubmitUpdatedEntryButtonClick();
     }
 
-    // Instead of the instructions "Load X page HTML", I could instead remove current section HTML and
-    // add relevant section's HTML
+    function loadMainPage() {
+        // Retrieve token. Speak to server and verify user is logged in (with the token)
+        // If there is not a valid token, Redirect to login page 
+        // windows.location = main.html
+    }
 
     // Instead of these two steps done before loading a page explicitly: 1. (Server -> Make sure still authenticated).
     // 2. If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
@@ -43,25 +56,32 @@ function main() {
     * 
     */
 
+    function loadLoginPage() {
+        // Load the Login page HTML.
+        // Empty USER, USER_ENTRIES, SEARCH_ENTRIES.
+    }
+
     function handleLoginButton() {
         $(".login_button").click(function(event) {
             console.log("handleLoginButton runs");
             // Make explicit functions instead.
             const username = $(".input_username").val();
             const password = $(".input_password").val();
-            window.location = "/status.html";
+            window.location = "/main.html";
             /**return {
                 username : username,
                 password : password
             }**/
         });
         // When user clicks the login button: 
-        // Verify through API the username and password are valid. (check database with find(), authenticate, attach JWT)
+        // Verify through API the username and password are valid. (Server -> check database with find(), authenticate, attach JWT)
         // If failure, let user know. Adding a short <p>.
-        // If success, load Status page HTML (with userId).
-        // (GET user's information: fullName, Entries)
-        // For each entry in Entries.sort() with the user's ID: 
-        // Display Name, Role, Address, Contact Name, Description.  Then a View Entry button and OPTIONAL Update Entry button.
+        // If success, load main page HTML (with userId).
+        // (Server -> GET user's serialized information: fullName, Entries)
+        // Store user information locally in USER.
+        // For each entry in Entries.sort() with the user's ID (Server -> GET entries associated with userId): 
+        // Store entry locally in USER_ENTRIES.
+        // Display Name, Role, Address, Contact Name, Description.  Then a View Entry button and Update Entry button.
     }
 
     
@@ -73,11 +93,14 @@ function main() {
         // When user clicks the Status Tab:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
-        // Load the Status page HTML (with userId).
-        // (Server -> GET user's serialized information: fullName, Entries)
-        // For each entry in Entries.sort() with the user's ID (Server -> GET entries associated with userId): 
-
-        // Display Name, Role, Address, Contact Name, Description.  Then a View Entry button and OPTIONAL Update Entry button.
+        // Hide, current section's HTML.
+        // Refill, unhide Status section's HTML.
+        // Empty Entries storage.
+        // For each entry in with the user's ID (Server -> GET entries associated with userId): 
+        // (Server -> GET entries serialized information: almost everything).
+        // OPTIONAL Entries.sort().
+        // Fill USER_ENTRIES storage locally.
+        // Display Name, Role, Address, Contact Name, Description. Then a View Entry button and Update Entry button.
     }
 
     function handleCreateEntryTabClick() {
@@ -87,9 +110,9 @@ function main() {
         // When user clicks the Create Entry Tab:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
-        // Load the Create Entry page HTML.
-        // OPTIONAL (Server -> GET user's serialized information: fullName, E-mail, Phone number)
-        // OPTIONAL Autofill Contact Name, E-mail, Phone Number.
+        // Hide, current section's HTML.
+        // Refill, unhide Create Entry section's HTML.
+        // OPTIONAL Autofill Contact Name, E-mail, Phone Number into form fields.
     }
 
     function handleSearchEntryTabClick() {
@@ -99,7 +122,9 @@ function main() {
         // When user clicks the Search Entry Tab:
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
-        // Load the Search Entry Page HTML.
+        // Hide, current section's HTML.
+        // Empty SEARCH_ENTRIES local storage.
+        // Refill, unhide Search Entry section's HTML.
     }
 
     function handleLogoutTabClick() {
@@ -110,7 +135,8 @@ function main() {
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
         // Show an alert asking "Are you sure?" or something like this.
-        // If confirmed logging out, load the Login page.
+        // If confirmed logging out (Server -> remove JWT authentication).
+        // Load the Login page.
     }
 
     function handleViewEntryButtonClick() {
@@ -120,23 +146,22 @@ function main() {
         // When user clicks the View Entry button (within Status Page or Search Page):
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
-        // Load the View Entry Page (with relevant entryId and current account's userId).
-        // (Server -> GET entries serialized information: almost everything).
-        // Display almost everything for the entry.
-        // OPTIONAL If userId matches the entries associated userID, also make the Update Entry button available.
-        // 
+        // Hide current section's HTML.
+        // Refill, unhide View Entry section's HTML.
+        // Display almost everything for the entry (from relevant entryId's info in USER_ENTRIES or SEARCH_ENTRIES, depending on if entryUsersId = userId).
+        // If userId matches the entries associated userID, also make the Update Entry button available.
     }
 
     function handleUpdateEntryButtonClick() {
         $(".update_entry_tab").click(function(event) {
             console.log("handleUpdateEntryButtonClick runs");
         });
-        //When user clicks on the Update Entry button on the Status, Search, or View Entry pages:
-        //(Server -> Make sure still authenticated).
+        // When user clicks on the Update Entry button on the Status, Search, or View Entry pages:
+        // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
-        // Load the Update Entry page HTML (with entryId).
-        // (Server -> GET entries serialized information: almost everything)
-        // Set the values in the respective fields to the entries previous information.  {altenatively, could get this info prior to loading the page}
+        // Hide current section's HTML.
+        // Refill, unhide Update Entry section's HTML.
+        // Set the values in the respective fields to the entries previous information (from entryId's info in USER_ENTRIES).
     }
 
     function hanldeSearchButtonClick() {
@@ -148,9 +173,13 @@ function main() {
         // If fields not valid. Notify the user. Stop.
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // Empty SEARCH_ENTRIES.
         // Make a request to the GeoCoder API to gather all zipcodes within the user-specified mile-radius form the user-specified zipcode.
-        // A list of usable zipcodes is made from the results of the get request. 
+        // A list of usable zipcodes is made from the results of the get request. Store locally.
         // (Server -> GET all entries that have one of the zipcodes from the list).
+        // For each entry returned, Entries.sort perhaps:
+        // Fill SEARCH_ENTRIES storage locally.
+        // Display Name, Role, Address, Contact Name, Description. Then a View Entry button and (when applicable) Update Entry button.
     }
 
     function handleSubmitNewEntryButtonClick() {
@@ -163,8 +192,9 @@ function main() {
         // Verify fields are filled properly (ex zipcode is number, email has @, OPTIONAL phone number verified).
         // If fields not valid, notify the user. Stop.
         // (Server => POST this entry into Entries).
-        // Load the View Entry page (with entryId and userID).
-        // (Server -> GET entries serialized information: almost everything).
+        // Add to USER_ENTRIES locally. Add entryId to USER's entries.
+        // Hide current section's HTML.
+        // Refill, unhide View Entry section's HTML (with relevant entryId's info).
         // Display almost everything for the entry.
     }
 
@@ -178,8 +208,9 @@ function main() {
         // Verify fields are filled properly (ex zipcode is number, email has @, OPTIONAL phone number verified).
         // If fields not valid, notify the user. Stop.
         // (Server => PUT the updated information into this entry in Entries).
-        // Load the View Entry page (with entryId and userID).
-        // (Server -> GET entries serialized information: almost everything).
+        // Add to USER_ENTRIES locally.
+        // Hide current section's HTML.
+        // Refill, unhide View Entry section's HTML (with relevant entryId's info).
         // Display almost everything for the entry.
     }
 
