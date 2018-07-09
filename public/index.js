@@ -33,34 +33,38 @@ function main() {
     */
 
     function handleLoginButton() {
-        $(".login_button").click(function(event) {
-            console.log("handleLoginButton runs");
-            // Make explicit functions instead.
-            const username = $(".input_username").val();
-            const password = $(".input_password").val();
-            
-            /**return {
-                username : username,
-                password : password
-            }**/
-            loadMainPage();
-        });
         // When user clicks the login button: 
         // Verify through API the username and password are valid. (Server -> check database with find(), authenticate, attach JWT)
         // If failure, let user know. Adding a short <p>.
         // If success, load main page HTML (with userId).
+        // REST OF THIS ACTUALLY GOES TO MAIN.HTML
         // (Server -> GET user's serialized information: fullName, Entries)
         // Store user information locally in USER.
         // For each entry in Entries.sort() with the user's ID (Server -> GET entries associated with userId): 
         // Store entry locally in USER_ENTRIES.
         // Display Name, Role, Address, Contact Name, Description.  Then a View Entry button and Update Entry button.
+        $(".login_section").on("submit", "form", function(event) {
+            console.log("handleLoginButton runs");
+            event.preventDefault();
+            // Make explicit functions instead.
+            const username = $(".input_username").val();
+            const password = $(".input_password").val();
+            if (authorizeUser(username, password)) {
+                loadMainPage();
+            }
+            
+        });
+    }
+
+    function authorizeUser(username, password) {
+        // Posts info from the filled out form to the server to authorize the user.  Returns true with a WST if User authorized.
+        // WILL MAKE REQUEST TO SERVER HERE!!!
+        return true;
     }
 
     function loadMainPage() {
         console.log("loadMainPage() runs");
-        windows.location = "/main.html";
-        // Retrieve token. Speak to server and verify user is logged in (with the token)
-        // If there is not a valid token, Redirect to login page 
+        window.location = "/main.html";
     }
 
     $(intializePage());

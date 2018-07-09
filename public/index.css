@@ -1,4 +1,13 @@
 
 section {
     border : 2px solid black;
+    padding : 2px;
+}
+
+.hidden {
+    display : none;
+}
+
+.highlighted {
+    color : lightcoral;
 }
