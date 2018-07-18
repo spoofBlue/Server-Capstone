@@ -4,7 +4,6 @@ console.log("Hello Server Tester");
 const chai = require(`chai`);
 const chaiHttp = require(`chai-http`);
 const mongoose = require(`mongoose`);
-const faker = require(`faker`);
 
 mongoose.Promise = global.Promise;
 

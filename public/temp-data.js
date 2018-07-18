@@ -25,7 +25,6 @@ const TEMP_USER_ENTRIES = [{
         entryCountry : "United States" ,
         entryZipcode : "12345"
     } ,
-    entryZipcode : "12345" ,
     entryDescription : "We're a local diner downtown. We typically have extra fruits and breads every couple of weeks." ,
     entryFoodAvailable : "Apple's five dozen. About ten loafs of bread. Ten cakes. Several dozen day-old bagels. Six gallons milk. Some misc."
 } , {
@@ -44,7 +43,6 @@ const TEMP_USER_ENTRIES = [{
         entryCountry : "United States" ,
         entryZipcode : "12349"
     } ,
-    entryZipcode : "12349" ,
     entryDescription : "We are a large supermarket. We have a large surplus of products nearing expiration dates. Details outlines in our food database." ,
     entryFoodAvailable : "Several dozen day-old bagels."
 } , {
@@ -63,7 +61,6 @@ const TEMP_USER_ENTRIES = [{
         entryCountry : "United States" ,
         entryZipcode : "27705"
     } ,
-    entryZipcode : "27705" ,
     entryDescription : "We are a non-profit homeless shelter, seeking for reduced food rates." ,
     entryFoodAvailable : "Anything would be appreciated!"
 }];
@@ -84,7 +81,6 @@ const TEMP_SEARCH_ENTRIES = [{
         entryCountry : "United States" ,
         entryZipcode : "27705"
     } ,
-    entryZipcode : "27705" ,
     entryDescription : "We are a non-profit homeless shelter, seeking for reduced food rates." ,
     entryFoodAvailable : "Anything would be appreciated!"
 }, {
@@ -103,7 +99,6 @@ const TEMP_SEARCH_ENTRIES = [{
         entryCountry : "United States" ,
         entryZipcode : "27710"
     } ,
-    entryZipcode : "27710" ,
     entryDescription : "We are a homeless shelter, looking for a donator." ,
     entryFoodAvailable : "No preferences."
 }];
