@@ -1,17 +1,136 @@
 
 const express = require(`express`);
 const bodyParser = require(`body-parser`);
+const passport = require(`passport`);
 
 const {Users} = require(`./userModel`);
+const {router : authRouter, localStrategy, jwtStrategy} = require(`./auth`);
+
+//Passport Strategies
+passport.use(localStrategy);
+passport.use(jwtStrategy);
 
 // Further package accessibility
 const router = express.Router();
 const jsonParser = bodyParser.json();
+const jwtAuth = passport.authenticate('jwt', { session: false });
 
-router.get(`/`, (req, res) => {
+// Helper functions
+function checkPostRequestForErrors(req) {
+    // Checks fields to make sure standards are met.  Including: having required fields, certain fields are strings, username and password
+    // are explicitly trimmed, username and password adhere to character length requirements, and username is unique in database.
+    // Returns the array errorMessage, which populates only if errors occur.
+    const requiredFields = [`username`,`userPassword`,`userFullName`,`userEmail`,`userPhoneNumber`,`userDescription`];
+    const stringFields = ['username', 'userPassword', `userFullName`];
+    const explicitlyTrimmedFields = ['username', 'userPassword'];
+    const sizedFields = {
+        username: { min: 1 },
+        password: { min: 10, max: 72 }
+          // bcrypt truncates after 72 characters, so let's not give the illusion of security by storing extra (unused) info.
+      };
+
+    let errorMessage = [];
+
+    requiredFields.forEach(field => {
+        if (!(field in req.body)) {
+            errorMessage.push(`The field ${field} is missing from the request.`);
+        }
+    });
+
+    stringFields.forEach(field => {
+        if ((field in req.body) && typeof req.body[field] !== 'string') {
+            errorMessage.push(`The field ${field} is not a string.`);
+        }
+    });
+
+    explicitlyTrimmedFields.forEach(field => {
+        if ((field in req.body) && req.body[field].trim() !== req.body[field]) {
+            errorMessage.push(`The field ${field} cannot not start or end with whitespace.`);
+        }
+    });
+
+    Object.keys(sizedFields).forEach(field => {
+        if ('min' in sizedFields[field] && req.body[field] && req.body[field].trim().length < sizedFields[field].min) {
+            errorMessage.push(`The field ${field} must be more than ${sizedFields[field].min} characters.`);
+        }
+    });
+    Object.keys(sizedFields).forEach(field => {
+        if ('max' in sizedFields[field] && req.body[field] && req.body[field].trim().length > sizedFields[field].max) {
+            errorMessage.push(`The field ${field} must be less than ${sizedFields[field].max} characters.`);
+        }
+    });
+
+    Users
+    .find({username : req.body.username})
+    .count()
+    .then(count => {
+        if (count > 0) {
+            errorMessage.push(`That username is already taken. The username must be unique.`);
+        }
+    })
+    .catch(err => {
+        errorMessage.push(`Server currently down. Please try again later.`);
+    });
+
+    return errorMessage;
+}
+
+function checkPutRequestForErrors(req) {
+    // Checks fields to make sure standards are met.  Including: certain fields are strings, username and password
+    // are explicitly trimmed, username and password adhere to character length requirements, and username is unique in database.
+    // Returns the array errorMessage, which populates only if errors occur.
+    const stringFields = ['username', 'userPassword', `userFullName`];
+    const explicitlyTrimmedFields = ['username', 'userPassword'];
+    const sizedFields = {
+        username: { min: 1 },
+        password: { min: 10, max: 72 }
+          // bcrypt truncates after 72 characters, so let's not give the illusion of security by storing extra (unused) info.
+      };
+
+    let errorMessage = [];
+
+    stringFields.forEach(field => {
+        if ((field in req.body) && typeof req.body[field] !== 'string') {
+            errorMessage.push(`The field ${field} is not a string.`);
+        }
+    });
+
+    explicitlyTrimmedFields.forEach(field => {
+        if ((field in req.body) && req.body[field].trim() !== req.body[field]) {
+            errorMessage.push(`The field ${field} cannot not start or end with whitespace.`);
+        }
+    });
+
+    Object.keys(sizedFields).forEach(field => {
+        if ('min' in sizedFields[field] && req.body[field] && req.body[field].trim().length < sizedFields[field].min) {
+            errorMessage.push(`The field ${field} must be more than ${sizedFields[field].min} characters.`);
+        }
+    });
+    Object.keys(sizedFields).forEach(field => {
+        if ('max' in sizedFields[field] && req.body[field] && req.body[field].trim().length > sizedFields[field].max) {
+            errorMessage.push(`The field ${field} must be less than ${sizedFields[field].max} characters.`);
+        }
+    });
+
+    Users
+    .find({username : req.body.username})
+    .count()
+    .then(count => {
+        if (count > 0) {
+            errorMessage.push(`That username is already taken. The username must be unique.`);
+        }
+    })
+    .catch(err => {
+        errorMessage.push(`Server currently down. Please try again later.`);
+    });
+
+    return errorMessage;
+}
+
+// Routing
+router.get(`/`, jwtAuth, (req, res) => {
     console.log(`Accessed userRouter through the get request.`);
     //const filters = {};  No filters currently deemed necessary.
-
     Users
         .find()
         .then(users => {
@@ -23,7 +142,7 @@ router.get(`/`, (req, res) => {
         });
 });
 
-router.get(`/:id`, (req, res) => {
+router.get(`/:id`, jwtAuth, (req, res) => {
     console.log(`Accessed userRouter through the get request.`);
     Users
         .findById(req.params.id)
@@ -36,27 +155,19 @@ router.get(`/:id`, (req, res) => {
         });
 });
 
-router.post(`/`, jsonParser, (req, res) => {
+router.post(`/`, jwtAuth, jsonParser, (req, res) => {
     console.log(`Accessed userRouter through the post request.`);
-    const requiredFields = [`userPassword`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userDescription`];
-
-    let errored = false;
-    let message = [];
-    requiredFields.forEach(field => {
-        if (!(field in req.body)) {
-            message.push(`The field ${field} is missing from the request.`);
-            errored = true;
-        }
-    });
-
-    if (errored) {
-        return res.status(400).json(message);
+    const errorMessage = checkPostRequestForErrors(req);
+    if (errorMessage.length > 0) {
+        return res.status(422).json(errorMessage);
     }
 
-    Users
+    return Users.hashPassword(req.body.userPassword)
+    .then(hashedPassword => {
+        Users
         .create({
             username : req.body.username ,
-            userPassword : req.body.userPassword ,
+            userPassword : hashedPassword ,
             userFullName : req.body.userFullName ,
             userEmail : req.body.userEmail ,
             userPhoneNumber : req.body.userPhoneNumber ,
@@ -66,24 +177,37 @@ router.post(`/`, jsonParser, (req, res) => {
 
         .then(user => res.status(201).json(user.serialize()))
         .catch(err => {
-            const message = `Failed to create user`;
+            const message = `Failed to create user.`;
             console.log(err);
             return res.status(400).send(message);
         });
+    });
 });
 
-router.put(`/:id`, jsonParser, (req, res) => {
+router.put(`/:id`, jwtAuth, jsonParser, (req, res) => {
     console.log(`Accessed userRouter through the put request.`);
     if (!(req.params.id && req.body.userId && req.params.id === req.body.userId)) {
         const msg = `${req.params.id} and ${req.body.userId} not the same`;
         return res.status(400).json({message : msg});
     }
 
+    const errorMessage = checkPutRequestForErrors(req);
+    if (errorMessage.length > 0) {
+        return res.status(422).json(errorMessage);
+    }
+
     const toUpdate = {};
-    const updateableFields = [`userPassword`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userDescription`, `userEntryIds`]
+    const updateableFields = [`userPassword`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userDescription`, `userEntryIds`];
     updateableFields.forEach(field => {
         if (field in req.body) {
-            toUpdate[field] = req.body[field];
+            if (field === "userPassword") {
+                return Users.hashPassword(req.body.userPassword)
+                .then(hashedPassword => {
+                    toUpdate[field] = hashedPassword;
+                });
+            } else {
+                toUpdate[field] = req.body[field];
+            }
         }
     });
 
@@ -97,7 +221,7 @@ router.put(`/:id`, jsonParser, (req, res) => {
     });
 });
 
-router.delete(`/:id`, (req, res) => {
+router.delete(`/:id`, jwtAuth, (req, res) => {
     console.log(`Accessed userRouter through the delete request.`);
     Users.findByIdAndRemove(req.params.id)
     .then(response => res.status(204).end())

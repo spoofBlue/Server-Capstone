@@ -4,6 +4,7 @@
 const chai = require(`chai`);
 const chaiHttp = require(`chai-http`);
 const mongoose = require(`mongoose`);
+const faker = require(`faker`);
 
 const {app, runServer, closeServer} = require(`../server`);
 const {Users} = require(`../userModel`);
@@ -16,33 +17,112 @@ const expect = chai.expect;
 function seedUserData() {
     console.info('Seeding user data');
     const seedUserData = [];
-    for (let i=1; i<=10; i++) {
-        seedUserData.push(generateUser());
+
+    for (let i=0; i<1; i++) {
+        const promise = new Promise(function(resolve, reject) {
+            console.log("execute promise in loop: ", i);
+            const unhashed = "hellohello";
+        
+            return Users.hashPassword(unhashed)
+            .then(function(password) {
+                const user = generateUser(password);
+                console.log("user: ", user);
+                return Users.create(user);
+            })
+            .then(function() {
+                resolve();
+            })
+            .catch(function(error) {
+                console.log(error.message);
+                reject(error.message);
+            })
+
+        });
+        seedUserData.push(promise);
+        console.log("finish loop: ", i);
     }
-    return Users.insertMany(seedUserData);
+/*
+    let count = 0;
+    while (count < 10) {
+        count++;
+    }
+*/
+    return Promise.all(seedUserData)
+    .then(function(seedData, reject) {
+        console.log("creating seedData: ", seedData);
+        return seedData;
+    })
+    .catch(function(error) {
+        console.log("error in seedUserData: ", error.message);
+        return error.message;
+    })
 }
 
-function generateUser() {
+function generateUser(password) {
     const sampleUser = {
-        username : genearteString() ,
-        userFullName : genearteString() ,
-        userEmail : genearteString() ,
-        userPhoneNumber : genearteString() ,
-        userEntryIds : [genearteString(), genearteString(), genearteString(), genearteString()] ,
-        userDescription : genearteString() ,
-        userPassword : genearteString()
+        username : generateString() ,
+        userFullName : generateString() ,
+        userEmail : generateString() ,
+        userPhoneNumber : generateString() ,
+        userEntryIds : [generateString(), generateString(), generateString(), generateString()] ,
+        userDescription : generateString() ,
+        userPassword : password
     }
     return sampleUser;
 }
 
-function genearteString() {
+function generateString() {
     const strings = ["WordsOfInfo", "TextOrName", "StreetOrInfo", "ThingsInAString", "LettersGenerated"];
     return strings[Math.floor(Math.random() * strings.length)];
+}
+
+function generateFakerName() {
+    return faker.name.findName();
+}
+
+function generatePassword() {
+    const strings = ["WordsOfInfo", "TextOrName", "StreetOrInfo", "ThingsInAString", "LettersGenerated"];
+    const unhash = strings[Math.floor(Math.random() * strings.length)];
+    return Users.hashPasswordSync(unhash);
 }
 
 function tearSeedDb() {
     console.warn(`Dropping database`);
     return mongoose.connection.dropDatabase();
+}
+
+function getAuthenticationJWT() {
+    console.log(`getAuthenitcationJWT running.`);
+    let currentUserPassword;
+    let currentUsername;
+    return Users.findOne()
+    .then(function(user) {
+        console.log(user);
+        currentUsername = user.username;
+        currentUserPassword = "hellohello"
+        console.log(`before`);
+        console.log(currentUsername);
+        console.log(currentUserPassword);
+        return chai.request(app)
+        .post(`/auth/login`)
+        .send({
+            username : currentUsername ,
+            password : "hellohello"
+        })
+        .then(function(successfulLogin) {
+            console.log(`success`);
+            console.log("successfulLogin", successfulLogin.body);
+            return successfulLogin;
+        })
+        .catch(function(error) {
+            console.log("Error in getAuthenticationJWT: login catch: ", error.message);
+            return error.message;
+        });
+    })
+    .catch(function(error) {
+        console.log("Error in getAuthenticationJWT: Users.findOne catch: ", error.message);
+        return error.message;
+    });
 }
 
 
@@ -59,12 +139,20 @@ describe(`User Integration Testing`, function() {
     after(function() {
         return closeServer();
     });
-
+    
+    
 
     describe(`User GET requests`, function() {
         it('should return all existing users', function() {
+            console.log(`just starting get request`);
+            
             let res;
-            return chai.request(app)
+            getAuthenticationJWT()
+            .then(function(res) {
+                console.log("Promise/GET test after getAuthenticatioJWT running.");
+                console.log(res.body);
+                console.log(res.text);
+                return chai.request(app)
                 .get('/users')
                 .then(function(_res) {
                     res = _res;
@@ -77,7 +165,14 @@ describe(`User Integration Testing`, function() {
                 .then(function(count) {
                     expect(res.body).to.have.lengthOf(count);
                 })
+            })
+            .catch(function(err) {
+                console.log("error in GET request main: ", err.message);
+            });
         });
+    });  // Remove this closing bracket once you include the rest of the testing.
+
+    /*
 
         it(`should show a user has all the correct Keys in it`, function() {
             let resUser;
@@ -126,7 +221,7 @@ describe(`User Integration Testing`, function() {
                 });
             })
         });
-    });
+    //});
 
     describe(`User POST requests`, function() {
 
@@ -153,10 +248,9 @@ describe(`User Integration Testing`, function() {
                 })
                 .then(function(dbUser) {
                     userKeys.forEach(function(key) {
-                        /*
-                        if (key === "userId") {
-                            expect(resUser["userId"]).to.equal(chosenUser["_id"]);
-                        } else */
+                        //if (key === "userId") {
+                        //    expect(resUser["userId"]).to.equal(chosenUser["_id"]);
+                        //} else 
                         if (key !== "userEntryIds" && key !== "userId") {
                             expect(resUser[key]).to.equal(dbUser[key]);
                         }
@@ -262,13 +356,20 @@ describe(`User Integration Testing`, function() {
             });
         });
     });
+    
 
     describe(`user DELETE requests`, function() {
 
         it(`should delete a user of the database`, function() {
             let chosenUser;
 
-            return Users.findOne()
+            getAuthenticationJWT()
+            .then(function(res) {
+                console.log("look at me");
+                console.log(res.body);
+                console.log(res.text);
+                return Users.findOne();
+            })
             .then(function(user) {
                 chosenUser = user;
                 return chai.request(app)
@@ -285,6 +386,10 @@ describe(`User Integration Testing`, function() {
                     console.log("program should never bring you here.");
                     expect(shouldNeverReachHere).to.be.null;
                 });
+            })
+            .catch(function(err) {
+                console.log("Failed to authorize the testing program.");
+                expect(err).to.be.null;
             });
         });
 
@@ -311,5 +416,6 @@ describe(`User Integration Testing`, function() {
                 });
             });
         });
-    });
+        */
+    //});   Include this closing bracket once you incoprorate rest of test again.
 });

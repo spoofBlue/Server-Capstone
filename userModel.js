@@ -1,5 +1,6 @@
 
 const mongoose = require(`mongoose`);
+const bcrypt = require('bcryptjs');
 
 const UserSchema = mongoose.Schema({
     "userId" : {type : String} ,
@@ -23,6 +24,19 @@ UserSchema.methods.serialize = function() {
         userDescription : this.userDescription 
     }
 }
+
+UserSchema.methods.validatePassword = function(password) {
+    return bcrypt.compare(password, this.userPassword);
+};
+
+UserSchema.statics.hashPassword = function(password) {
+    return bcrypt.hash(password, 10);
+};
+
+//Syncronous version
+UserSchema.statics.hashPasswordSync = function(password) {
+    return bcrypt.hashSync(password, 10);
+};
 
 const Users = mongoose.model(`users`, UserSchema);
 
