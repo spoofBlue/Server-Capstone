@@ -49,16 +49,25 @@ function main() {
             // Make explicit functions instead.
             const username = $(".input_username").val();
             const password = $(".input_password").val();
+            /*const promise = new Promise((resolve, reject) => {
+                return authorizeUser()
+            });
+            */
             if (authorizeUser(username, password)) {
                 loadMainPage();
             }
-            
+            //promise();
         });
     }
 
     function authorizeUser(username, password) {
         // Posts info from the filled out form to the server to authorize the user.  Returns true with a WST if User authorized.
         // WILL MAKE REQUEST TO SERVER HERE!!!
+        const query = {
+            username : username ,
+            password : password
+        };
+        //$.post(`/auth/login`, query, callback);
         return true;
     }
 

@@ -57,18 +57,44 @@ function main() {
 
     function loadStatusSection() {
         // This function can load the HTML by clicking the Status Tab (route from handleStatusTabClick) or from intial page load (initializePage).
-        getUserEntries();
-        hideAllSections();
-        unhideSection(`status_section`);
-        CURRENT_ENTRY_SOURCE = USER_ENTRIES;
-        displayStatusSection();
+        getUserEntries()
+        .then(() => {
+            hideAllSections();
+            unhideSection(`status_section`);
+            CURRENT_ENTRY_SOURCE = USER_ENTRIES;
+            if (USER_ENTRIES.length > 0) {
+                displayStatusSection();
+            } else {
+                displayEmptyStatus();
+            }
+        })
+        .catch((error) => {
+            console.log("error in loadStatusSection: ", error.message);
+        });
     }
 
     function getUserEntries() {
         // User's already logged in.  Getting serialized information on the entries of a specific entryUserId 
         // (the current user's userId) to store locally. 
-        //!!!!!! GET request!!
-        USER_ENTRIES = TEMP_USER_ENTRIES;
+        // Return a Promise.
+        const user_entries_promise = new Promise((resolve, reject) => {
+            const query = {
+                entryUserId : USER.userId
+            }
+            $.get(`/entries`, query, function(data, status) {
+                console.log("status: ", status);
+                if (status === `success`) {
+                    console.log(data);
+                    USER_ENTRIES = data;
+                    resolve();
+                } else {
+                    reject();
+                }
+                
+            });
+        });
+
+        return user_entries_promise;
     }
 
     function hideAllSections() {
@@ -97,27 +123,6 @@ function main() {
                 }
             });
         }
-    }
-
-    function verifyAcceptableUserInputs(section) {
-        // Verifies all text-based fields in the `section` satisfy standards set in verifyInput. Returns true if all fields fulfill standards.
-        // !!!!!! Doesn't fully verify properly yet!
-        let verified = true;
-        let form_inputs = gatherUserInputs(section);
-        console.log(form_inputs);
-
-        $(`.notification_section`).addClass(`hidden`);
-        Object.keys(form_inputs).forEach(function(input) {
-            console.log(input);
-            const result = verifyInput(form_inputs[input]);
-            console.log(result);
-            if (result !== "Accepted") {
-                highlightTextbox(input.id);
-                notifyUser(result);
-                verified = false;
-            }
-        });
-        return verified ? form_inputs : null;
     }
     
     function gatherUserInputs(section) {
@@ -165,6 +170,27 @@ function main() {
         return form_inputs;
     }
 
+    function verifyAcceptableUserInputs(form_inputs) {
+        // Verifies all text-based fields in the form_inputs object satisfy standards set in verifyInput. 
+        // Returns true if all fields fulfill standards.
+        // !!!!!! Doesn't fully highlightTextbox, notifyUser properly yet!
+        let verified = true;
+        console.log(form_inputs);
+
+        $(`.notification_section`).addClass(`hidden`);
+        Object.keys(form_inputs).forEach(function(input) {
+            console.log(input);
+            const result = verifyInput(form_inputs[input]);
+            console.log(result);
+            if (result !== "Accepted") {
+                highlightTextbox(input.id);
+                notifyUser(result);
+                verified = false;
+            }
+        });
+        return verified;
+    }
+
     function verifyInput(input) {
         // Reads in input, uses input.name to determine what kind of tests the input must go through to be considered valid.
         let result = "Accepted";
@@ -197,9 +223,9 @@ function main() {
         $(textbox).addClass("highlighted");
      }
 
-     function notifyUser(error) {
+     function notifyUser(errorMessage) {
          unhideSection(`notificaton_section`);
-         $(`.notificaton_section`).html(error);
+         $(`.notificaton_section`).html(errorMessage);
      };
 
     /**                 PAGE SPECIFIC FUNCTIONS                     **/
@@ -209,8 +235,8 @@ function main() {
         //!!!!!!!!!!! (Server -> Make sure still authenticated).
         //!!!!!!!!!!! If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
         // Hide, current section's HTML.
-        // !!!!!!!!!!! For each entry in with the user's ID (Server -> GET entries associated with userId): 
-        // !!!!!!!!!!! (Server -> GET entries serialized information: almost everything).
+        // For each entry in with the user's ID (Server -> GET entries associated with userId): 
+        // (Server -> GET entries serialized information: almost everything).
         // !!!!!!!!!!! OPTIONAL Entries.sort().
         // Fill USER_ENTRIES storage locally.
         // Display Name, Role, Address, Contact Name, Description. Then a View Entry button and Update Entry button.
@@ -241,6 +267,13 @@ function main() {
                 </li>`
             );
         });
+    }
+
+    function displayEmptyStatus() {
+        $(`.status_section`).html(
+        `<h2>Status Page of ${USER.userFullName}</h2>
+        <p>You currently have no entries listed. Click on the New Entry tab to create a new entry!</p>`
+        );
     }
 
     function handleCreateNewEntryTabClick() {
@@ -311,8 +344,8 @@ function main() {
 
     function handleSearchEntryTabClick() {
         // When user clicks the Search Entry Tab:
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // !!!!!!!! (Server -> Make sure still authenticated).
+        // !!!!!!!! If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
         // Hide, current section's HTML.
         // Refill, unhide Search Entry section's HTML.
         $(".search_entry_tab").click(function(event) {
@@ -438,7 +471,6 @@ function main() {
 
     function displayUpdateEntrySection() {
         // Fills in the HTML of .update_entry_section.  Uses data from CURRENT_ENTRY.
-        // !!!!!!!!!!!! Need to separate the fullAddress into it's pieces in order to put into their fields.
         $(`.update_entry_section`).html(
             `<h2>Update Entry for ${CURRENT_ENTRY.entryName}</h2>
             <form role="form"></form>`
@@ -507,8 +539,8 @@ function main() {
     function hanldeSearchButtonClick() {
         // When user clicks the Search button on the Search Page:
 
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // !!!!!!!!! (Server -> Make sure still authenticated).
+        // !!!!!!!!! If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
         // Verify fields are properly filled (ex zipcode is a number, mile radius is a number)
         // If fields not valid. Notify the user. Stop.
         // Make a request to the GeoCoder API to gather all zipcodes within the user-specified mile-radius form the user-specified zipcode.
@@ -522,18 +554,22 @@ function main() {
             console.log("handleSearchButtonClick runs");
             event.preventDefault();
             checkAuthorizedUser();
-            let form_inputs = verifyAcceptableUserInputs(`search_entry_section`);
-            if (!form_inputs) {
-                console.log(`something wasn't filled out properly`);   
+            const form_inputs = gatherUserInputs(`search_entry_section`);
+            let verified = verifyAcceptableUserInputs(form_inputs);
+            if (!verified) {
+                console.log(`something wasn't filled out properly.`);   
             } else {
-                getNearbyZipcodes(form_inputs)
+                return getNearbyZipcodes(form_inputs)
                 .then(zipcodes => {
-                    getSearchEntries(zipcodes)
+                    console.log(zipcodes);
+                    const role = form_inputs["entryRole"].value;
+                    return getSearchEntries(zipcodes, role);
                 })
                 .then(() => {
-                CURRENT_ENTRY_SOURCE = SEARCH_ENTRIES;
-                unhideSection(`search_results_section`);
-                displaySearchResultSection();
+                    console.log(SEARCH_ENTRIES);    
+                    CURRENT_ENTRY_SOURCE = SEARCH_ENTRIES;
+                    unhideSection(`search_results_section`);
+                    return displaySearchResultSection();
                 });
             }
         });
@@ -551,54 +587,82 @@ function main() {
         let radius = (form_inputs["searchMileRadius"].value * 1.60934);   // Converting the miles from the user to kilometers for the API.
         let maxRows = "10";
         let query = `username=${username}&country=${country}&postalcode=${zipCode}&radius=${radius}&maxRows=${maxRows}`;
-        return $.get(`http://api.geonames.org/findNearbyPostalCodesJSON?${query}`, function(data) {
+        return fetch(`http://api.geonames.org/findNearbyPostalCodesJSON?${query}`)
+            .then(response => response.json())
+            .then(data => {
             if (data[`postalCodes`]) {
                 data[`postalCodes`].forEach(function(area) {
                     zipCodes.push(area.postalCode);
                 });
             }
-            console.log(zipCodes);
             return zipCodes;
         })
         .catch(error => {
-            alert(`GeoNames API not returning `);
-            return [];
+            alert(`GeoNames API not returning everything properly.`);
+            return zipCodes;
         });
     }
 
-    function getSearchEntries(zipCodes) {
-        // Given an array of zipcodes, this makes a GET request for all entries in database with zipcode and role.
-        // User's already logged in.  Getting serialized information on the entries of a specific zipcode to store locally.
+    function getSearchEntries(zipCodes, role) {
+        // Given an array of zipcodes and a string role, this makes a GET request for all entries in database with zipcode and role.
+        // Getting serialized information on the entries of a specific zipcode to store in SEARCH_ENTRIES.
         //!!!!!! GET request!!
         if (zipCodes.length === 0) {
             notifyUser(`No areas were found near ${FORM_INPUTS["Zipcode"].value}.`)
-            return true;
+            return Promise.reject();
         } else {
             SEARCH_ENTRIES = {};
-            for (let zipcode in zipCodes) {
-                getEntriesByZipcode(zipcode);
-            }
-            return true; 
+            const concurrentPromises = [];
+            console.log(zipCodes);
+            zipCodes.forEach(zipcode => {
+                const zipPromise = new Promise((resolve, reject) => {
+                    return getEntriesByZipcode(zipcode, role);
+                })
+                .then(() => {
+                    resolve();
+                })
+                .catch(error => {
+                    reject(error.message);
+                });
+                concurrentPromises.push(zipPromise);
+            });
+            
+            return Promise.all(concurrentPromises)
+            .then(() => {
+                console.log(`getSearchEntries successful.`);
+                return;
+            })
+            .catch((error) => {
+                console.log(`getSearchEntries error: `, error.message);
+                return error.message;
+            });
         }
     }
 
-    function getEntriesByZipcode(zipcode) {
+    function getEntriesByZipcode(zipcode, role) {
         console.log(`ran getEntriesByZipcode`);
-        // Given a zipcode, makes a request to the server and pushes those entries into SEARCH_ENTRIES.
-        // @@@@@@@@ !!!!!!!!!!    Make a get request to the server for entries with the zipcode.
-        // in get request, will also specify we need the exact zipcode, as well as role=donator or role=receiver.
-        // $.get(`/entries`, function(data,status)) {
-            // for (let entry in data.entries?) {
-                    // Fill SEARCH_ENTRIES storage locally.
-                    // SEARCH_ENTRIES.push();
-            //}
-        //})
-        //.catch(error) {
-            //console.log(error);
-            //alert(`Could not reach the server.`);
-        //}
+        // Given a zipcode and role, makes a request to the server and pushes those entries into SEARCH_ENTRIES.
+        const query = {
+            entryZipcode : zipcode,
+            entryRole : role
+        }
+        $.get(`/entries`, query, function(data, status) {
+            for (let entry in data.entries) {
+                console.log(entry);
+                console.log(entry);
+                SEARCH_ENTRIES.push();
+            }
+        })
+        .then(() => {
+            console.log(`arrived at end of getEntryiesByZipcode successfully`);
+            return;
+        })
+        .catch(error => {
+            console.log(`getEntriesByZipcode error`, error.message);
+            return error.message;
+        });
 
-        SEARCH_ENTRIES = TEMP_SEARCH_ENTRIES;                   // temporary.
+        //SEARCH_ENTRIES = TEMP_SEARCH_ENTRIES;                   // temporary.
     }
 
     function displaySearchResultSection() {
@@ -644,9 +708,9 @@ function main() {
             console.log("handleSubmitNewEntryButtonClick runs");
             event.preventDefault();
             checkAuthorizedUser();
-            gatherUserInputs();
-            let form_inputs = verifyAcceptableUserInputs(`create_new_entry_section`);
-            if (!form_inputs) {
+            const form_inputs = gatherUserInputs(`create_new_entry_section`);
+            let verified = verifyAcceptableUserInputs(form_inputs);
+            if (!verified) {
                 console.log(`something wasn't filled out properly`);   
             }
             else {
@@ -666,7 +730,7 @@ function main() {
     }
 
     function packageInputsIntoObject(form_inputs) {
-        // Using FORM_INPUTS to create the object to send.  The "entryAddress" property has an object value, so must evaluate each property in 
+        // Using form_inputs to create the object to send.  The "entryAddress" property has an object value, so must evaluate each property in 
         // the "entryAddress" object as well.
         let information = {};
         Object.keys(form_inputs).forEach(key => {
@@ -754,9 +818,9 @@ function main() {
             console.log("handleSubmitUpdatedEntryButtonClick runs");
             event.preventDefault();
             checkAuthorizedUser();
-            gatherUserInputs();
-            let form_inputs = verifyAcceptableUserInputs(`update_entry_section`);
-            if (!form_inputs) {
+            const form_inputs = gatherUserInputs(`update_entry_section`);
+            let verified = verifyAcceptableUserInputs(form_inputs);
+            if (!verified) {
                 console.log(`something wasn't filled out properly`); 
             }
             else {

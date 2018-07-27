@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 
 const UserSchema = mongoose.Schema({
     "userId" : {type : String} ,
-    "username" : {type : String , required : true} ,
+    "username" : {type : String , required : true, unique : true} ,
     "userPassword" : {type : String , required : true} ,
     "userFullName" : {type : String , required : true} ,
     "userEmail" : {type : String , required : true} ,
@@ -26,6 +26,7 @@ UserSchema.methods.serialize = function() {
 }
 
 UserSchema.methods.validatePassword = function(password) {
+    console.log(`run validate password`);
     return bcrypt.compare(password, this.userPassword);
 };
 

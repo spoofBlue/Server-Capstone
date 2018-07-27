@@ -18,9 +18,9 @@ function seedUserData() {
     console.info('Seeding user data');
     const seedUserData = [];
 
-    for (let i=0; i<1; i++) {
+    for (let i=0; i<2; i++) {
         const promise = new Promise(function(resolve, reject) {
-            console.log("execute promise in loop: ", i);
+            console.log("execute seedUserData() promise in loop: ", i);
             const unhashed = "hellohello";
         
             return Users.hashPassword(unhashed)
@@ -29,27 +29,23 @@ function seedUserData() {
                 console.log("user: ", user);
                 return Users.create(user);
             })
-            .then(function() {
+            .then(function(res) {
+                console.log("seedUserData() res after Users.create : ", res.message);
                 resolve();
             })
             .catch(function(error) {
                 console.log(error.message);
                 reject(error.message);
-            })
-
+            });
         });
         seedUserData.push(promise);
-        console.log("finish loop: ", i);
+        console.log("finish seedUserData() promise: ", i);
     }
-/*
-    let count = 0;
-    while (count < 10) {
-        count++;
-    }
-*/
+
     return Promise.all(seedUserData)
     .then(function(seedData, reject) {
         console.log("creating seedData: ", seedData);
+        // if seedData is empty, could reject it to the catch.
         return seedData;
     })
     .catch(function(error) {
@@ -60,7 +56,7 @@ function seedUserData() {
 
 function generateUser(password) {
     const sampleUser = {
-        username : generateString() ,
+        username : generateFakerName() ,
         userFullName : generateString() ,
         userEmail : generateString() ,
         userPhoneNumber : generateString() ,
@@ -99,7 +95,7 @@ function getAuthenticationJWT() {
     .then(function(user) {
         console.log(user);
         currentUsername = user.username;
-        currentUserPassword = "hellohello"
+        currentUserPassword = "hellohello";
         console.log(`before`);
         console.log(currentUsername);
         console.log(currentUserPassword);

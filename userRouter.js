@@ -25,9 +25,9 @@ function checkPostRequestForErrors(req) {
     const explicitlyTrimmedFields = ['username', 'userPassword'];
     const sizedFields = {
         username: { min: 1 },
-        password: { min: 10, max: 72 }
-          // bcrypt truncates after 72 characters, so let's not give the illusion of security by storing extra (unused) info.
-      };
+        userPassword: { min: 10, max: 72 }
+        // bcrypt truncates after 72 characters, so let's not give the illusion of security by storing extra (unused) info.
+    };
 
     let errorMessage = [];
 
@@ -83,7 +83,7 @@ function checkPutRequestForErrors(req) {
     const explicitlyTrimmedFields = ['username', 'userPassword'];
     const sizedFields = {
         username: { min: 1 },
-        password: { min: 10, max: 72 }
+        userPassword: { min: 10, max: 72 }
           // bcrypt truncates after 72 characters, so let's not give the illusion of security by storing extra (unused) info.
       };
 

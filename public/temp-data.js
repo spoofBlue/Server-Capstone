@@ -10,7 +10,7 @@ const TEMP_USER = {
 };
 
 const TEMP_USER_ENTRIES = [{
-    entryId : "1111" ,
+    entryId : "AAAA" ,
     entryCreationDate : "06-25-2018" ,
     entryName : `Henry's Market` ,
     entryUserFullName : "Bob Smith" ,
