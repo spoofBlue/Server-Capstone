@@ -559,9 +559,8 @@ function main() {
             if (!verified) {
                 console.log(`something wasn't filled out properly.`);   
             } else {
-                return getNearbyZipcodes(form_inputs)
+                getNearbyZipcodes(form_inputs)
                 .then(zipcodes => {
-                    console.log(zipcodes);
                     const role = form_inputs["entryRole"].value;
                     return getSearchEntries(zipcodes, role);
                 })
@@ -570,6 +569,9 @@ function main() {
                     CURRENT_ENTRY_SOURCE = SEARCH_ENTRIES;
                     unhideSection(`search_results_section`);
                     return displaySearchResultSection();
+                })
+                .catch(error => {
+                    return console.log(error.message);
                 });
             }
         });
@@ -611,26 +613,28 @@ function main() {
             notifyUser(`No areas were found near ${FORM_INPUTS["Zipcode"].value}.`)
             return Promise.reject();
         } else {
-            SEARCH_ENTRIES = {};
+            SEARCH_ENTRIES = [];
             const concurrentPromises = [];
             console.log(zipCodes);
             zipCodes.forEach(zipcode => {
                 const zipPromise = new Promise((resolve, reject) => {
-                    return getEntriesByZipcode(zipcode, role);
+                    return getEntriesByZipcode(zipcode, role);      // The function runs, but we don't get transferred to the .then or .catch
                 })
                 .then(() => {
-                    resolve();
+                    console.log(`getSearchEntries resolve() reached.`);
+                    resolve();  
                 })
                 .catch(error => {
+                    console.log(`getSearchEntries reject() reached.`);
                     reject(error.message);
                 });
                 concurrentPromises.push(zipPromise);
             });
             
             return Promise.all(concurrentPromises)
-            .then(() => {
+            .then(res => {
                 console.log(`getSearchEntries successful.`);
-                return;
+                return res;
             })
             .catch((error) => {
                 console.log(`getSearchEntries error: `, error.message);
@@ -647,15 +651,15 @@ function main() {
             entryRole : role
         }
         $.get(`/entries`, query, function(data, status) {
-            for (let entry in data.entries) {
-                console.log(entry);
-                console.log(entry);
+            console.log("data: ", data);
+            for (let entry in data) {
+                console.log("entry: ", entry);
                 SEARCH_ENTRIES.push();
             }
         })
-        .then(() => {
+        .then(res => {
             console.log(`arrived at end of getEntryiesByZipcode successfully`);
-            return;
+            return res;
         })
         .catch(error => {
             console.log(`getEntriesByZipcode error`, error.message);

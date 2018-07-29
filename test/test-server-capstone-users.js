@@ -27,7 +27,7 @@ function seedUserData() {
             .then(function(password) {
                 const user = generateUser(password);
                 console.log("user: ", user);
-                return Users.create(user);
+                return Users.create(user);      // This step does not run!!!!
             })
             .then(function(res) {
                 console.log("seedUserData() res after Users.create : ", res.message);
