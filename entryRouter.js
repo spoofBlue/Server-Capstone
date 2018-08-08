@@ -52,10 +52,12 @@ router.post(`/`, jsonParser, (req, res) => {
     const requiredFields = [`entryCreationDate`,`entryName`,`entryUserFullName`,`entryUserEmail`,`entryUserPhoneNumber`,`entryUsersId`,
     `entryRole`,`entryAddress`,`entryDescription`,`entryFoodAvailable`];
 
+    console.log(req.body);
     let errored = false;
     let message = [];
     requiredFields.forEach(field => {
         if (!(field in req.body)) {
+            console.log(`issue with: `, field);
             message.push(`The field ${field} is missing from the request.`);
             errored = true;
         }
@@ -64,12 +66,14 @@ router.post(`/`, jsonParser, (req, res) => {
     const requiredAddressFields = [`entryStreetAddress`,`entryCity`,`entryState`,`entryCountry`,`entryZipcode`];
     requiredAddressFields.forEach(addressField => {
         if (req.body[`entryAddress`] && !(addressField in req.body[`entryAddress`])) {
+            console.log(`issue with: `, addressField);
             message.push(`The field ${addressField} within entryAddress is missing from the request.`);
             errored = true;
         }
     });
 
     if (errored) {
+        console.log("Error in the required field postings.");
         return res.status(400).json(message);
     }
 
@@ -95,7 +99,7 @@ router.post(`/`, jsonParser, (req, res) => {
         .then(entry => res.status(201).json(entry.serialize()))
         .catch(err => {
             const message = `Failed to create entry`;
-            console.log(err);
+            console.log(err.message);
             return res.status(400).send(message);
         });
 });
@@ -109,22 +113,21 @@ router.put(`/:id`, jsonParser, (req, res) => {
 
     const toUpdate = {};
     const updateableFields = [`entryCreationDate`,`entryName`,`entryUserFullName`,`entryUserEmail`,`entryUserPhoneNumber`,`entryUsersId`,
-    `entryRole`,`entryDescription`,`entryFoodAvailable`];  // Notice entryAddress was removed from updating.  We'll address it next.
+    `entryRole`,`entryDescription`,`entryFoodAvailable`];  // Notice entryAddress was removed from updating.  We'll address in second if statement.
     updateableFields.forEach(field => {
         if (field in req.body) {
             toUpdate[field] = req.body[field];
         }
     });
 
-    if (req[`body`][`entryAddress`]) {
+    if (req[`body`][`entryAddress`]) {  // Could hypothetically leave entryAddress in updateable fields above.
         const updateableAddressFields = [`entryStreetAddress`,`entryCity`,`entryState`,`entryCountry`,`entryZipcode`];
         updateableAddressFields.forEach(field => {
             if (field in req[`body`][`entryAddress`]) {
-                toUpdate[field] = req.body[`entryAddress`][field];
+                toUpdate[`entryAddress.${field}`] = req.body[`entryAddress`][field];
             }
         });
     }
-    
 
     Entries
     .findByIdAndUpdate(req.params.id, {$set : toUpdate})

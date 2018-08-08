@@ -19,7 +19,8 @@ const EntrySchema = mongoose.Schema({
         entryZipcode : String ,
     } ,
     "entryDescription" : {type : String , required : true} ,
-    "entryFoodAvailable" : {type : String , required : true} 
+    "entryFoodAvailable" : {type : String , required : true} ,
+    "entryLastUpdatedDate" : {type : String}
 });
 
 EntrySchema.methods.serialize = function() {

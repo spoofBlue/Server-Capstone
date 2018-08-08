@@ -1,4 +1,13 @@
 
+html, body {
+    box-sizing : border-box;
+    margin : 0;
+    padding : 0;
+  
+    font-size : 13px;
+    font-family: sans-serif;
+}
+
 section {
     border : 2px solid black;
     padding : 2px;
@@ -9,5 +18,27 @@ section {
 }
 
 .highlighted {
-    color : lightcoral;
+    background-color : lightcoral;
+}
+
+.access_tabs_section {
+    position : fixed;
+    background-color: rgb(136, 241, 206);
+    width : 100%;
+    height : 10%;
+}
+
+.access_tabs_section li {
+    list-style-type: none;
+    display: inline-block;
+}
+
+header {
+    padding-top : 10%;
+}
+
+main section {
+    width : 90%;
+    margin : 0 auto;
+    background-color: rgb(176, 255, 229);
 }

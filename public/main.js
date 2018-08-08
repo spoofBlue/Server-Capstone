@@ -2,6 +2,9 @@
 console.log("Hello main.js");
 
 function main() {
+    let JWT_KEY;
+    let USERNAME;
+
     let USER;
     let USER_ENTRIES;
     let SEARCH_ENTRIES;
@@ -10,49 +13,80 @@ function main() {
     let FORM_INPUTS;
 
     function initializePage() {
-        checkAuthorizedUser(); 
 
-        handleStatusTabClick();
-        handleCreateNewEntryTabClick();
-        handleSearchEntryTabClick();
-        handleLogoutTabClick();
-        handleViewEntryButtonClick();
-        handleUpdateEntryButtonClick();
-        hanldeSearchButtonClick();
-        handleSubmitNewEntryButtonClick();
-        handleSubmitUpdatedEntryButtonClick();
-        handleDeleteButtonClick();
+        establishCredentials();
 
-        getUserInfo();
-        loadStatusSection();
+        checkAuthorizedUser()
+        .then(() => {
+            handleStatusTabClick();
+            handleCreateNewEntryTabClick();
+            handleSearchEntryTabClick();
+            handleLogoutTabClick();
+            handleViewEntryButtonClick();
+            handleUpdateEntryButtonClick();
+            hanldeSearchButtonClick();
+            handleSubmitNewEntryButtonClick();
+            handleSubmitUpdatedEntryButtonClick();
+            handleDeleteButtonClick();
+            handleBackButtonClick();
+
+            getUserInfo()
+            .then(() => {
+                loadStatusSection();
+            });
+        })
+        .catch(error => {
+            console.log(`initializePage. error = `, error.message);
+            localStorage.setItem(`harvest_united_status`, `Local session timed out.`);
+            //loadLoginPage();
+        }); 
+    }
+
+    function establishCredentials() {
+        JWT_KEY = localStorage.getItem(`harvest_united_jwt`);
+        USERNAME = localStorage.getItem(`harvest_united_username`);
+        localStorage.removeItem(`harvest_united_jwt`);
+        localStorage.removeItem(`harvest_united_username`);
     }
 
     function checkAuthorizedUser() {
-        // Is this necessary? I could have a middleware function that shows an error in authenticity. When that error
-        // occurs, the server could route the user to login.html?
-        //$.get('/', function(response) {
-        //    console.log(response);
-            //if (response.status !== 200) {
-            //    console.log(`client says server does not approve`);
-            //    loadLoginPage();
-            //} else {
-            //    console.log(`client says server approves`);
-            //}
-        //});
-        console.log(`user was authenticated to use the site through the checkAuthorizedUser() function.`)
+        // Verifies the current jwt works, also refreshes the JWT for the user.
+        console.log(`ran checkAuthorizedUser`);
+        const jwt = JWT_KEY;
+
+        return fetch(`/auth/refresh`, {method : "POST", headers : {"Authorization" : `Bearer ${jwt}`}})
+        .then(response => response.json())
+        .then(res => {
+            JWT_KEY = res.authToken;
+        })
+        .catch(error => {
+            localStorage.setItem(`harvest_united_status`, `Local session timed out.`);
+            console.log(`checkAuthorizationUser. error = `, error.message);
+            loadLoginPage();
+        }); 
     }
 
     function loadLoginPage() {
-        // Empty USER, USER_ENTRIES, SEARCH_ENTRIES.
         // Load the Login page HTML.
-        console.log("loadLoginPage() runs");
+        console.log("loadLoginPage runs");
         window.location = "/index.html";
     }
 
     function getUserInfo() {
         // User's already logged in.  Getting serialized information on the user to store locally.
-        //!!!!!! GET request!!
-        USER = TEMP_USER;
+        console.log(`ran getUserInfo`);
+        const jwt = JWT_KEY;
+        const username = USERNAME;
+        
+        return fetch(`/users?username=${username}`, {method : "GET", headers : {"Authorization" : `Bearer ${jwt}`}})
+        .then(response => response.json())
+        .then(res => {
+            console.log(`getUserInfo. res = `, res);
+            USER = res[0];
+        })
+        .catch(error => {
+            console.log(`getUserInfo. error = `, error.message);
+        });
     }
 
     function loadStatusSection() {
@@ -61,7 +95,7 @@ function main() {
         .then(() => {
             hideAllSections();
             unhideSection(`status_section`);
-            CURRENT_ENTRY_SOURCE = USER_ENTRIES;
+            CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
             if (USER_ENTRIES.length > 0) {
                 displayStatusSection();
             } else {
@@ -76,21 +110,20 @@ function main() {
     function getUserEntries() {
         // User's already logged in.  Getting serialized information on the entries of a specific entryUserId 
         // (the current user's userId) to store locally. 
-        // Return a Promise.
+        // Returns a Promise.
         const user_entries_promise = new Promise((resolve, reject) => {
-            const query = {
-                entryUserId : USER.userId
-            }
-            $.get(`/entries`, query, function(data, status) {
+            console.log(`getUserEntries. USER = `, USER);
+            console.log(`getUserEntries. USER.userId = `, USER.userId);
+            $.get(`/entries?entryUsersId=${USER.userId}`, function(data, status) {
                 console.log("status: ", status);
                 if (status === `success`) {
+                    console.log(`getUserEntries. data = `, data);
                     console.log(data);
                     USER_ENTRIES = data;
                     resolve();
                 } else {
                     reject();
                 }
-                
             });
         });
 
@@ -110,15 +143,20 @@ function main() {
 
     function getEntryInfoFromEntryId(id) {
         // Get's the object with entryId "id" from USER_ENTRIES or SEARCH_ENTRIES, depending on which section user was in when accessing entry.
-        if (CURRENT_ENTRY_SOURCE === USER_ENTRIES) {
+        console.log(`getEntryInfoFromEntryId. CURRENT_ENTRY_SOURCE = `, CURRENT_ENTRY_SOURCE);
+        console.log(`getEntryInfoFromEntryId. entryId = `, id);
+        if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
             USER_ENTRIES.forEach(entry => {
                 if (entry.entryId === id) {
+                    console.log(`getEntryInfoFromEntryId. entryId from USER_ENTRIES = `, id);
                     CURRENT_ENTRY = entry;
                 }
             });
-        } else  { // !!!!!!!! if (CURRENT_ENTRY_SOURCE === USER_ENTRIES === SEARCH_ENTRIES)?
+        } else  
+        if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
             SEARCH_ENTRIES.forEach(entry => {
                 if (entry.entryId === id) {
+                    console.log(`getEntryInfoFromEntryId. entryId from SEARCH_ENTRIES = `, id);
                     CURRENT_ENTRY = entry;
                 }
             });
@@ -173,9 +211,8 @@ function main() {
     function verifyAcceptableUserInputs(form_inputs) {
         // Verifies all text-based fields in the form_inputs object satisfy standards set in verifyInput. 
         // Returns true if all fields fulfill standards.
-        // !!!!!! Doesn't fully highlightTextbox, notifyUser properly yet!
         let verified = true;
-        console.log(form_inputs);
+        console.log(`verifyAcceptableUserInputs. form_inputs=`, form_inputs);
 
         $(`.notification_section`).addClass(`hidden`);
         Object.keys(form_inputs).forEach(function(input) {
@@ -183,9 +220,12 @@ function main() {
             const result = verifyInput(form_inputs[input]);
             console.log(result);
             if (result !== "Accepted") {
-                highlightTextbox(input.id);
+                console.log(`verifyAcceptableUserInputs. input = `, form_inputs[input]);
+                highlightTextbox(form_inputs[input].id);
                 notifyUser(result);
                 verified = false;
+            } else {
+                removeHighlightTextbox(form_inputs[input].id);
             }
         });
         return verified;
@@ -220,20 +260,30 @@ function main() {
 
      function highlightTextbox(textbox) {
         // Adds CSS to the textbox input (through the highlighted class) to make it stand out to the user, making it clear which textbox needs to be changed.
-        $(textbox).addClass("highlighted");
+        console.log(`highlightTextbox. textbox= `, textbox);
+        $(`#${textbox}`).addClass("highlighted");
      }
 
-     function notifyUser(errorMessage) {
-         unhideSection(`notificaton_section`);
-         $(`.notificaton_section`).html(errorMessage);
+    function removeHighlightTextbox(textbox) {
+        // Removes CSS to the textbox input (through the highlighted class).
+        console.log(`highlightTextbox. textbox= `, textbox);
+        $(`#${textbox}`).removeClass("highlighted");
+    }
+
+     function notifyUser(message) {
+         // Unhides the notification section and posts the message String.
+         unhideSection(`notification_section`);
+         $(`.notification_section`).html(`
+         <p>${message}</p>
+         `);
      };
 
     /**                 PAGE SPECIFIC FUNCTIONS                     **/
 
     function handleStatusTabClick() {
         // When user clicks the Status Tab:
-        //!!!!!!!!!!! (Server -> Make sure still authenticated).
-        //!!!!!!!!!!! If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // (Server -> Make sure still authenticated).
+        // If not authenticated, load the Login Page.  Stop.
         // Hide, current section's HTML.
         // For each entry in with the user's ID (Server -> GET entries associated with userId): 
         // (Server -> GET entries serialized information: almost everything).
@@ -243,8 +293,13 @@ function main() {
         // Refill, unhide Status section's HTML.
         $(".status_tab").click(function(event) {
             console.log("handleStatusTabClick runs");
-            checkAuthorizedUser();
-            loadStatusSection();
+            checkAuthorizedUser()
+            .then(() => {
+                loadStatusSection();
+            })
+            .catch(error => {
+                console.log(error.message);
+            });
         });
     }
 
@@ -278,18 +333,23 @@ function main() {
 
     function handleCreateNewEntryTabClick() {
         // When user clicks the Create Entry Tab:
-        // !!!!!!!!!!!!! (Server -> Make sure still authenticated).
-        // !!!!!!!!!!!!! If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // (Server -> Make sure still authenticated).
+        // If not authenticated, load the Login Page. Stop.
         // Hide, current section's HTML.
         // Refill, unhide Create Entry section's HTML.
         // OPTIONAL Autofill Contact Name, E-mail, Phone Number into form fields.
         $(".create_new_entry_tab").click(function(event) {
             console.log("handleCreateNewEntryTab runs");
-            checkAuthorizedUser();
-            hideAllSections();
-            unhideSection(`create_new_entry_section`);
-            CURRENT_ENTRY_SOURCE = USER_ENTRIES;
-            displayCreateNewEntrySection();
+            checkAuthorizedUser()
+            .then(() => {
+                hideAllSections();
+                unhideSection(`create_new_entry_section`);
+                CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
+                displayCreateNewEntrySection();
+            })
+            .catch(error => {
+                console.log(error.message);
+            }); 
         });
     }
 
@@ -344,25 +404,30 @@ function main() {
 
     function handleSearchEntryTabClick() {
         // When user clicks the Search Entry Tab:
-        // !!!!!!!! (Server -> Make sure still authenticated).
-        // !!!!!!!! If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // (Server -> Make sure still authenticated).
+        // If not authenticated, load the Login Page.  Stop.
         // Hide, current section's HTML.
         // Refill, unhide Search Entry section's HTML.
         $(".search_entry_tab").click(function(event) {
             console.log("handleSearchEntryTab runs");
-            checkAuthorizedUser();
-            hideAllSections();
-            unhideSection(`search_entry_section`);
-            displaySearchEntrySection();
+            checkAuthorizedUser()
+            .then(() => {
+                hideAllSections();
+                unhideSection(`search_entry_section`);
+                displaySearchEntrySection();
+            })
+            .catch(error => {
+                console.log(error.message);
+            }); 
+            
         });
-        // Empty SEARCH_ENTRIES local storage?
     }
 
     function displaySearchEntrySection() {
         // Fills in the HTML of .create_new_entry_section.  Autofills data from locally stored USER to help.
         $(`.search_entry_section`).html(
             `<h2>Search Entries</h2>
-            <form role="form">
+            <form role="form" id="search_form">
                 <fieldset>
                     <legend>Search for donators or receivers?</legend>
                     <input type="radio" name="entryRole" value="Donator" class="radio_donator_or_receiver" id="radio_donator" required>
@@ -391,6 +456,7 @@ function main() {
             console.log("handleLogoutTabClick runs");
             if (confirm("Click OK to confirm log out.")) {
                 // Clicks OK.
+                localStorage.setItem(`harvest_united_status`, `User signed out.`);
                 loadLoginPage();
             }
         });
@@ -400,8 +466,8 @@ function main() {
 
     function handleViewEntryButtonClick() {
         // When user clicks the View Entry button (within Status Page or Search Page):
-        // !!!!!!!!!!!! (Server -> Make sure still authenticated).
-        // !!!!!!!!!!!! If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // (Server -> Make sure still authenticated).
+        // If not authenticated, load the Login Page.  Stop.
         // Hide current section's HTML.
         // obtain the entryId relevant to the entry clicked.
         // Refill, unhide View Entry section's HTML.
@@ -409,19 +475,34 @@ function main() {
         // If userId matches the entries associated userID, also make the Update Entry button available.
         $("main").on("click", ".view_entry_button", function(event) {
             console.log("handleViewEntryButtonClick runs");
-            checkAuthorizedUser();
-            getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in value.
-            hideAllSections();
-            unhideSection(`view_entry_section`);
-            displayViewEntrySection();
+            checkAuthorizedUser()
+            .then(() => {
+                getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in value.
+                hideAllSections();
+                unhideSection(`view_entry_section`);
+                displayViewEntrySection();
+            })
+            .catch(error => {
+                console.log(error.message);
+            }); 
+            
         });
     }
 
     function displayViewEntrySection() {
         // Fills in the HTML of .view_entry_section.  Uses data from CURRENT_ENTRY. Only shows update button if entry's userId = id of logged in user.
         console.log("Let's view the entry.")
-        console.log(CURRENT_ENTRY);
-        $(`.view_entry_section`).html(
+        if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
+            $(`.view_entry_section`).html(
+                `<button class="back_button return_back_to_search_results" title="Back Button">Go Back to Search Results</button>`
+            );
+        } else { // Then (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`)
+            $(`.view_entry_section`).html(
+                `<button class="back_button return_back_to_user_entries" title="Back Button">Go Back to your Entries</button>`
+            );
+        }
+        
+        $(`.view_entry_section`).append(
             `<h2>View Entry for ${CURRENT_ENTRY.entryName}.</h2>
             <p>Role: ${CURRENT_ENTRY.entryRole}</p>
             <h3>${stringifyEntryAddress(CURRENT_ENTRY.entryAddress)}</h3>
@@ -433,9 +514,8 @@ function main() {
             <p>Date Created: ${CURRENT_ENTRY.entryCreationDate}</p> 
             <p>Description: ${CURRENT_ENTRY.entryDescription}.</p>
             <p>Food Available: ${CURRENT_ENTRY.entryFoodAvailable}</p>`
+
         );
-        console.log(CURRENT_ENTRY.entryUsersId);
-        console.log(USER.userId);
         if (CURRENT_ENTRY.entryUsersId === USER.userId) {
             $(`.view_entry_section`).append(
                 `<button class="update_entry_button" title="Update Entry Button" value="${CURRENT_ENTRY.entryId}">Update</button>
@@ -454,26 +534,32 @@ function main() {
         // When user clicks on the Update Entry button on the Status, Search, or View Entry pages:
         // obtain the entryId relevant to the entry clicked.
         // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // If not authenticated, load the Login Page. Stop.
         // Hide current section's HTML.
         // Refill, unhide Update Entry section's HTML.
-        // !!!!!!!!!!!! Set the values in the respective fields to the entries previous information (from entryId's info in USER_ENTRIES).
+        // Set the values in the respective fields to the entries previous information (from entryId's info in USER_ENTRIES).
         $("main").on("click", ".update_entry_button" ,function(event) {
             console.log("handleUpdateEntryButtonClick runs");
-            checkAuthorizedUser();
-            getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in value.
-            hideAllSections();
-            unhideSection(`update_entry_section`);
-            displayUpdateEntrySection();
+            checkAuthorizedUser()
+            .then(() => {
+                getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in value.
+                hideAllSections();
+                unhideSection(`update_entry_section`);
+                displayUpdateEntrySection();
+            })
+            .catch(error => {
+                console.log(error.message);
+            }); 
         });
-        
     }
 
     function displayUpdateEntrySection() {
         // Fills in the HTML of .update_entry_section.  Uses data from CURRENT_ENTRY.
         $(`.update_entry_section`).html(
             `<h2>Update Entry for ${CURRENT_ENTRY.entryName}</h2>
-            <form role="form"></form>`
+            <form role="form" id="update_entry_form"></form>
+            <button class="view_entry_button" title="View Entry Button" value="${CURRENT_ENTRY.entryId}">View</button>
+            <button class="delete_entry_button" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>`
         );
         if (CURRENT_ENTRY.entryRole === `Donator`) {        // Then the `Donator` value is checked.
             $(`.update_entry_section form`).append(
@@ -528,19 +614,20 @@ function main() {
                     <input type="text" name="entryUserPhoneNumber" value="${CURRENT_ENTRY.entryUserPhoneNumber}" id="input_entry_contact_phoneNumber" required>
                 </fieldset>
                 <label for="input_entry_foodAvailable">Food Available:</label>
-                <input type="text" name="entryFoodAvailable" value="${CURRENT_ENTRY.entryFoodAvailable}" id="input_entry_foodAvailable"
-                    required>
-                <button class="view_entry_button" title="View Entry Button" value="${CURRENT_ENTRY.entryId}">View</button>
-                <button class="delete_entry_button" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>
+                <input type="text" name="entryFoodAvailable" value="${CURRENT_ENTRY.entryFoodAvailable}" id="input_entry_foodAvailable">
                 <button type="submit" class="submit_updated_entry_button" title="Submit Updated Entry Button" value="${CURRENT_ENTRY.entryId}">Update Entry</button>`
+                // Could add in the delete button onto the update page.  Don't want users to accidently delete instead of update though.
+                
+                // Could add the view button as well.  Unecessary? Just hit update without changing anything.
+                
         );
     }
 
     function hanldeSearchButtonClick() {
         // When user clicks the Search button on the Search Page:
 
-        // !!!!!!!!! (Server -> Make sure still authenticated).
-        // !!!!!!!!! If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
+        // (Server -> Make sure still authenticated).
+        // If not authenticated, load the Login Page. Stop.
         // Verify fields are properly filled (ex zipcode is a number, mile radius is a number)
         // If fields not valid. Notify the user. Stop.
         // Make a request to the GeoCoder API to gather all zipcodes within the user-specified mile-radius form the user-specified zipcode.
@@ -553,27 +640,35 @@ function main() {
         $(".search_entry_section").on("submit", "form", function(event) {
             console.log("handleSearchButtonClick runs");
             event.preventDefault();
-            checkAuthorizedUser();
-            const form_inputs = gatherUserInputs(`search_entry_section`);
-            let verified = verifyAcceptableUserInputs(form_inputs);
-            if (!verified) {
-                console.log(`something wasn't filled out properly.`);   
-            } else {
-                getNearbyZipcodes(form_inputs)
-                .then(zipcodes => {
-                    const role = form_inputs["entryRole"].value;
-                    return getSearchEntries(zipcodes, role);
-                })
-                .then(() => {
-                    console.log(SEARCH_ENTRIES);    
-                    CURRENT_ENTRY_SOURCE = SEARCH_ENTRIES;
-                    unhideSection(`search_results_section`);
-                    return displaySearchResultSection();
-                })
-                .catch(error => {
-                    return console.log(error.message);
-                });
-            }
+            checkAuthorizedUser()
+            .then(() => {
+                const form_inputs = gatherUserInputs(`search_entry_section`);
+                if (verifyAcceptableUserInputs(form_inputs)) {
+                    getNearbyZipcodes(form_inputs)
+                    .then(zipcodes => {
+                        const role = form_inputs["entryRole"].value;
+                        return getSearchEntries(zipcodes, role);
+                    })
+                    .then((arrayOfarrayofEntries) => {
+                        const entries = arrayOfarrayofEntries.reduce(function(acc, current) {
+                            acc.push(...current);
+                            return acc;
+                        }, []);
+
+                        console.log(entries);    
+                        CURRENT_ENTRY_SOURCE = `SEARCH_ENTRIES`;
+                        SEARCH_ENTRIES = entries;
+                        unhideSection(`search_results_section`);
+                        displaySearchResultSection(entries);
+                    })
+                    .catch(error => {
+                        return console.log(error.message);
+                    });
+                }
+            })
+            .catch(error => {
+                console.log(error.message);
+            }); 
         });
     }
 
@@ -608,27 +703,14 @@ function main() {
     function getSearchEntries(zipCodes, role) {
         // Given an array of zipcodes and a string role, this makes a GET request for all entries in database with zipcode and role.
         // Getting serialized information on the entries of a specific zipcode to store in SEARCH_ENTRIES.
-        //!!!!!! GET request!!
+        // GET request!!
         if (zipCodes.length === 0) {
             notifyUser(`No areas were found near ${FORM_INPUTS["Zipcode"].value}.`)
             return Promise.reject();
         } else {
-            SEARCH_ENTRIES = [];
-            const concurrentPromises = [];
             console.log(zipCodes);
-            zipCodes.forEach(zipcode => {
-                const zipPromise = new Promise((resolve, reject) => {
-                    return getEntriesByZipcode(zipcode, role);      // The function runs, but we don't get transferred to the .then or .catch
-                })
-                .then(() => {
-                    console.log(`getSearchEntries resolve() reached.`);
-                    resolve();  
-                })
-                .catch(error => {
-                    console.log(`getSearchEntries reject() reached.`);
-                    reject(error.message);
-                });
-                concurrentPromises.push(zipPromise);
+            const concurrentPromises = zipCodes.map(zipcode => {
+                return getEntriesByZipcode(zipcode, role);      // The function runs, but we don't get transferred to the .then or .catch
             });
             
             return Promise.all(concurrentPromises)
@@ -646,36 +728,26 @@ function main() {
     function getEntriesByZipcode(zipcode, role) {
         console.log(`ran getEntriesByZipcode`);
         // Given a zipcode and role, makes a request to the server and pushes those entries into SEARCH_ENTRIES.
-        const query = {
-            entryZipcode : zipcode,
-            entryRole : role
-        }
-        $.get(`/entries`, query, function(data, status) {
-            console.log("data: ", data);
-            for (let entry in data) {
-                console.log("entry: ", entry);
-                SEARCH_ENTRIES.push();
-            }
-        })
+
+        return fetch(`/entries?entryZipcode=${zipcode}&entryRole=${role}`, {method : "GET"})
+        .then(response => response.json())
         .then(res => {
-            console.log(`arrived at end of getEntryiesByZipcode successfully`);
+            console.log(`arrived at end of getEntryiesByZipcode successfully. res = `, res);
             return res;
         })
         .catch(error => {
             console.log(`getEntriesByZipcode error`, error.message);
             return error.message;
         });
-
-        //SEARCH_ENTRIES = TEMP_SEARCH_ENTRIES;                   // temporary.
     }
 
-    function displaySearchResultSection() {
+    function displaySearchResultSection(entries) {
         // Display each entry from SEARCH_ENTRIES.
         $(`.search_results_section`).html(
-            `<h2>Results: ${SEARCH_ENTRIES.length} entries.</h2>
+            `<h2>Results: ${entries.length} entries.</h2>
             <ul></ul>`
         );
-        SEARCH_ENTRIES.forEach(entry => {
+        entries.forEach(entry => {
             $(`.search_results_section ul`).append(
                 `<li class="entry">
                 <h3>${entry.entryName}</h3>
@@ -698,12 +770,12 @@ function main() {
     }
 
     function handleSubmitNewEntryButtonClick() {
-        // When user clicks the Submit New Entry button on the Create New Entry page:
+        // When user clicks the Submit New Entry button on the Create New Entry page.
         // (Server -> Make sure still authenticated).
         // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
         // Verify fields are filled properly (ex zipcode is number, email has @, OPTIONAL phone number verified).
         // If fields not valid, notify the user. Stop.
-        // !!!!!!!!! (Server => POST this entry into Entries).
+        // (Server => POST this entry into Entries).
         // Add to USER_ENTRIES locally. Add entryId to USER's entries.
         // Hide current section's HTML.
         // Refill, unhide View Entry section's HTML (with relevant entryId's info).
@@ -711,47 +783,54 @@ function main() {
         $(".create_new_entry_section").on("submit", "form", function(event) {
             console.log("handleSubmitNewEntryButtonClick runs");
             event.preventDefault();
-            checkAuthorizedUser();
-            const form_inputs = gatherUserInputs(`create_new_entry_section`);
-            let verified = verifyAcceptableUserInputs(form_inputs);
-            if (!verified) {
-                console.log(`something wasn't filled out properly`);   
-            }
-            else {
-                let entryInfo = packageInputsIntoObject(form_inputs);
-                entryInfo = assignMiscInfo(entryInfo);
-                postEntryToDatabase(entryInfo);
-                entryInfo = getEntryIdFromDatabase(entryInfo);
-                CURRENT_ENTRY = entryInfo;
-                addEntryToUserEntries(entryInfo);
-                addEntryIdToUserInfo(entryInfo);
-                hideAllSections();
-                unhideSection(`view_entry_section`);
-                CURRENT_ENTRY_SOURCE = USER_ENTRIES;
-                displayViewEntrySection();
-            }
+            checkAuthorizedUser()
+            .then(() => {
+                const form_inputs = gatherUserInputs(`create_new_entry_section`);
+                if (verifyAcceptableUserInputs(form_inputs)) {
+                    let entryInfo = packageInputsIntoObject(form_inputs);
+                    entryInfo = assignMiscInfo(entryInfo);
+                    const postPromise = postEntryToDatabase(entryInfo);
+
+                    postPromise
+                    .then(entryInfo => {
+                        // Note, entryInfo now also has entryId.
+                        CURRENT_ENTRY = entryInfo;
+                        addEntryToUserEntries(entryInfo);   // !!!!!! We end up making a GET request of all the entries from server put into USER_ENTRIES anyway. Remove? 
+                        hideAllSections();
+                        unhideSection(`view_entry_section`);
+                        CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
+                        displayViewEntrySection();
+                    })
+                    .catch(error => {
+                        console.log(error.message);
+                    });
+                }
+            })
+            .catch(error => {
+                console.log(error.message);
+            }); 
         });
     }
 
     function packageInputsIntoObject(form_inputs) {
-        // Using form_inputs to create the object to send.  The "entryAddress" property has an object value, so must evaluate each property in 
-        // the "entryAddress" object as well.
+        // Using form_inputs {id: x, name: y, type: z, value: n} to create the object to send.  The "entryAddress" property has an object value, 
+        // so must evaluate each property in the "entryAddress" object as well.
+        // The reason gatherUserInputs wasn't made to just display name : value (removing the necessity of this function packageInputs) 
+        // was versatility;  form_inputs is used for it's id/type in highlighting fields.
         let information = {};
         Object.keys(form_inputs).forEach(key => {
-            console.log(key);
             if (key === "entryAddress") {
                 const addressObject = form_inputs["entryAddress"]['value'];
                 information["entryAddress"] = {};
 
                 Object.keys(addressObject).forEach(addressKey => {
-                    console.log(addressKey);
                     information["entryAddress"][addressKey] = addressObject[addressKey][`value`];
                 });
             } else {
                 information[key] = form_inputs[key][`value`];
             }
         });
-        console.log(information);
+        console.log(`packageInputsIntoObject finished. information = `, information);
         return information;
     }
 
@@ -765,45 +844,25 @@ function main() {
 
     function postEntryToDatabase(entryInfo) {
         // Post entry (entryInfo) into the server database.
-        
-        // $.post(`/entries'?, function(res, rej) {
+        console.log(entryInfo);
 
-        //})
-    }
-
-    function getEntryIdFromDatabase(entryInfo) {
-        // (This function is run after the entry is sumbitted to the database and given a unique Id), Gets the unique Id from the database
-        // and gives the property to entryInfo.  Then returns entryInfo.
-        // $.get(`/entries`, function(response) {
-
-        //})
-        entryInfo[`entryId`] = "9999";    // temporary code until get request can be made.
-        return entryInfo;
+        return fetch(`/entries`, {method: "POST", body: JSON.stringify(entryInfo), headers : {"content-type": "application/json"}})
+        .then(response => response.json())
+        .catch(error => {
+            return error.message;
+        });
     }
 
     function addEntryToUserEntries(entryInfo) {
-        // Add entry to USER_ENTRIES.  Realistically, should never find an entry with the entryId in USER_ENTRIES already.
+        // Add entry to USER_ENTRIES. First checks to make sure entry isn't in USER_ENTRIES already.
         let newEntry = true;
-        for (let entry in USER[`userEntryIds`]) {
+        for (let entry in USER_ENTRIES) {
             if (entry[`entryId`] === entryInfo[`entryId`]) {
                 newEntry = false;
             }
         }
         if (newEntry === true) {
             USER_ENTRIES.push(entryInfo);
-        }
-    }
-    
-    function addEntryIdToUserInfo(entryInfo) {
-        // Adds the new entryId from created entry into user's entries. Only does so if entryId does not exist with user yet.
-        let newEntry = true;
-        for (let entry in USER[`userEntryIds`]) {
-            if (entry[`entryId`] === entryInfo[`entryId`]) {
-                newEntry = false;
-            }
-        }
-        if (newEntry === true) {
-            USER.userEntryIds.push(entryInfo.entryId);
         }
     }
 
@@ -818,34 +877,41 @@ function main() {
         // Hide current section's HTML.
         // Refill, unhide View Entry section's HTML (with relevant entryId's info).
         // Display almost everything for the entry.
-        $(".update_entry_section").on("submit", "form", function(event) {
+        $(".update_entry_section").on("submit", "#update_entry_form", function(event) {
             console.log("handleSubmitUpdatedEntryButtonClick runs");
             event.preventDefault();
-            checkAuthorizedUser();
-            const form_inputs = gatherUserInputs(`update_entry_section`);
-            let verified = verifyAcceptableUserInputs(form_inputs);
-            if (!verified) {
-                console.log(`something wasn't filled out properly`); 
-            }
-            else {
-                const entryId = $(event.currentTarget).attr("value");
-                let updateInfo = packageInputsIntoObject(form_inputs);
-                updatedEntry = combineEntryInfoAfterUpdate(updateInfo);
-                updateEntryToDatabase(updatedEntry);
-                
-                CURRENT_ENTRY = updatedEntry;
-                updateEntryInUserEntries(updatedEntry);
-                addEntryIdToUserInfo(updatedEntry);
-                hideAllSections();
-                unhideSection(`view_entry_section`);
-                CURRENT_ENTRY_SOURCE = USER_ENTRIES;
-                displayViewEntrySection();
-            }
+            checkAuthorizedUser()
+            .then(() => {
+                const form_inputs = gatherUserInputs(`update_entry_section`);
+                if (verifyAcceptableUserInputs(form_inputs)) {
+                    const entryId = $(event.currentTarget).attr("value");
+                    let updateInfo = packageInputsIntoObject(form_inputs);
+                    updatedEntry = combineEntryInfoAfterUpdate(updateInfo);
+                    
+                    updateEntryToDatabase(updatedEntry)
+                    .then((res) => {
+                        console.log(`handleSubmitUpdatedEntry after putPromise. res= `, res);
+                        CURRENT_ENTRY = updatedEntry;
+                        updateEntryInUserEntries(updatedEntry);
+                        hideAllSections();
+                        unhideSection(`view_entry_section`);
+                        CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
+                        displayViewEntrySection();
+                    })
+                    .catch(error => {
+                        console.log(error.message);
+                    });
+                }
+            })
+            .catch(error => {
+                console.log(error.message);
+            }); 
+            
         });
     }
 
     function combineEntryInfoAfterUpdate(updateInfo) {
-        // Combines the updateInfo with the current information of CURRENT_ENTRY, returning the updatedEntry.
+        // Updates our CURRENT_ENTRY with the updateInfo object provided, returning the updatedEntry.
         let updatedEntry = CURRENT_ENTRY;
         Object.keys(updateInfo).forEach(input => {
             if (input === "entryAddress") {
@@ -863,9 +929,16 @@ function main() {
 
     function updateEntryToDatabase(entryInfo) {
         // PUT (ie update) entry in the server database.
-        // $.put(`/entries/${entryInfo.entryId}'?, function(res, rej) {
-
-        //})
+        console.log(`updateEntryToDatabase entryInfo.entryId= `, entryInfo.entryId);
+        return fetch(`/entries/${entryInfo.entryId}`, {method : "PUT", body : JSON.stringify(entryInfo), headers : {"content-type" : "application/json"}})
+        .then(response => response.json())
+        .then(res => {
+            return res;
+        })
+        .catch(error => {
+            console.log(`postEntryToDatabase error: `, error.message);
+            return error.message;
+        });
     }
 
     function updateEntryInUserEntries(updatedEntry) {
@@ -884,40 +957,78 @@ function main() {
     }
 
     function handleDeleteButtonClick() {
-        // When the delete button is clicked while the user views it, 
+        // When the delete button is clicked while the user views it, removes the entry from the database and USER_ENTRIES.
         $("main").on("click", ".delete_entry_button", function(event) {
             console.log("handleDeleteButtonClick runs");
-            checkAuthorizedUser();
-            if (confirm(`Are you sure you want to delete this entry?`)) {
-                const entryIdToDelete = $(event.currentTarget).attr("value");       // the entry's entryId was stored in value.
+            checkAuthorizedUser()
+            .then(() => {
+                if (confirm(`Are you sure you want to delete this entry?`)) {
+                    const entryIdToDelete = $(event.currentTarget).attr("value");       // the entry's entryId was stored in value.
 
-                deleteEntryInDatabase(entryIdToDelete);
-                deleteEntryInUserEntries(entryIdToDelete);
-                deleteEntryIdInUserInfo(entryIdToDelete);
+                    deleteEntryInDatabase(entryIdToDelete)
+                    .then(() => {
+                        deleteEntryInUserEntries(entryIdToDelete);
 
-                loadStatusSection();
-            }
+                        loadStatusSection();
+                    })
+                    .catch(error => {
+                        console.log(error.message);
+                    });
+                }
+            })
+            .catch(error => {
+                console.log(error.message);
+            }); 
         });
-        /*
-        // delete from server database
-        // delete from USER_ENTRIES
-                hideAllSections();
-                unhideSection(`view_entry_section`);
-                CURRENT_ENTRY_SOURCE = USER_ENTRIES;
-                displayViewEntrySection();
-        */
     }
 
     function deleteEntryInDatabase(entryId) {
         // Makes a DELETE request to the database for the id specified.
+        return fetch(`entries/${entryId}`, {method : "DELETE"})
+        .then(response => response.json())
+        .catch(error => {
+            return error.message;
+        });
     }
 
-    function deleteEntryInUserEntries(entryId) {
+    function deleteEntryInUserEntries(deletingEntryId) {
         // Removes the entry from USER_ENTRIES using the id specified.
+        console.log(`ran deleteEntryInUserEntries`);
+
+        console.log(USER_ENTRIES);
+        let userEntryIndex = USER_ENTRIES.find((entry, index) => {
+            console.log(index);
+            console.log(entry);
+            if (deletingEntryId === entry.entryId) {
+                return index;
+            }
+        });
+        USER_ENTRIES.splice(userEntryIndex, 1);
+        console.log(USER_ENTRIES);
     }
 
-    function deleteEntryIdInUserInfo(entryId) {
-        // Removes the entryId from the USER 's userEntryIds.
+    function handleBackButtonClick() {
+        $(`.view_entry_section`).on(`click`, `.back_button`, function() {
+            console.log(`ran handleBackButtonClick`);
+            console.log(`handleBackButtonClick. CURRENT_ENTRY_SOURCE`, CURRENT_ENTRY_SOURCE);
+            checkAuthorizedUser()
+            .then(() => {
+                if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
+                    hideAllSections();
+                    unhideSection(`status_section`);
+                    displayStatusSection();
+                } else
+                if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
+                    hideAllSections();
+                    unhideSection(`search_entry_section`);
+                    unhideSection(`search_results_section`);
+                    displaySearchResultSection(SEARCH_ENTRIES);  // Chose not to simply unhide this section, as it may be updated. Updating HTML.  
+                }
+            })
+            .catch(error => {
+                console.log(error.message);
+            });
+        });
     }
 
     $(initializePage());

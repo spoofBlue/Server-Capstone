@@ -220,7 +220,7 @@ describe(`User Integration Testing`, function() {
     //});
 
     describe(`User POST requests`, function() {
-
+        // Note: I've since removed the response of user.serialize() from successful posting.
         it(`should post a new user into the database with all required keys (with correct values).`, function() {
             let newUser;
             const userKeys = [`userId`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userEntryIds`,`userDescription`];
@@ -238,17 +238,19 @@ describe(`User Integration Testing`, function() {
                     resUser = _res;
                     expect(resUser).to.have.status(201);
                     expect(resUser).to.be.json;
-                    expect(resUser.body).to.be.a('object');
-                    expect(resUser.body).to.have.keys(userKeys);
-                    return Users.find({userId : resUser.body.usersId});
+                    // expect(resUser.body).to.be.a('array'); // This should be here now.
+                    expect(resUser.body).to.be.a('object'); // !!!! Remove this.
+                    expect(resUser.body).to.have.keys(userKeys);    // !!!! Remove this.
+                    return Users.find({userId : resUser.body.usersId}); // !!!! Remove this.
                 })
                 .then(function(dbUser) {
+                    expect(dbUser.body).to.have.keys(userKeys);
                     userKeys.forEach(function(key) {
                         //if (key === "userId") {
-                        //    expect(resUser["userId"]).to.equal(chosenUser["_id"]);
+                        //    expect(resUser["userId"]).to.equal(chosenUser["_id"]); // !!!! Remove this.
                         //} else 
                         if (key !== "userEntryIds" && key !== "userId") {
-                            expect(resUser[key]).to.equal(dbUser[key]);
+                            expect(resUser[key]).to.equal(dbUser[key]); // !!!! Remove this.
                         }
                     });
                 })
