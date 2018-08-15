@@ -34,7 +34,7 @@ function genearteString() {
 }
 
 describe('Auth endpoints', function () {
-  const password = genearteString();
+  const password = "hellohello";
 
   before(function () {
     return runServer(TEST_DATABASE_URL);
@@ -56,11 +56,11 @@ describe('Auth endpoints', function () {
 
   //// Need to contine editing the document here!!
 
-  describe('/api/auth/login', function () {
+  describe('/auth/login', function () {
     it('Should reject requests with no credentials', function () {
       return chai
         .request(app)
-        .post('/api/auth/login')
+        .post('/auth/login')
         .then(() =>
           expect.fail(null, null, 'Request should not succeed')
         )
@@ -76,7 +76,7 @@ describe('Auth endpoints', function () {
     it('Should reject requests with incorrect usernames', function () {
       return chai
         .request(app)
-        .post('/api/auth/login')
+        .post('/auth/login')
         .send({ username: 'wrongUsername', password })
         .then(() =>
           expect.fail(null, null, 'Request should not succeed')
@@ -110,7 +110,7 @@ describe('Auth endpoints', function () {
     it('Should return a valid auth token', function () {
       return chai
         .request(app)
-        .post('/api/auth/login')
+        .post('/auth/login')
         .send({ username, password })
         .then(res => {
           expect(res).to.have.status(200);
@@ -122,18 +122,21 @@ describe('Auth endpoints', function () {
           });
           expect(payload.user).to.deep.equal({
             username,
-            firstName,
-            lastName
+            userFullName,
+            userEmail,
+            userPhoneNumber,
+            userEntryIds,
+            userDescription 
           });
         });
     });
   });
 
-  describe('/api/auth/refresh', function () {
+  describe('/auth/refresh', function () {
     it('Should reject requests with no credentials', function () {
       return chai
         .request(app)
-        .post('/api/auth/refresh')
+        .post('/auth/refresh')
         .then(() =>
           expect.fail(null, null, 'Request should not succeed')
         )
@@ -150,8 +153,10 @@ describe('Auth endpoints', function () {
       const token = jwt.sign(
         {
           username,
-          firstName,
-          lastName
+          userFullName,
+          userEmail,
+          userPhoneNumber,
+          userDescription 
         },
         'wrongSecret',
         {
@@ -162,7 +167,7 @@ describe('Auth endpoints', function () {
 
       return chai
         .request(app)
-        .post('/api/auth/refresh')
+        .post('/auth/refresh')
         .set('Authorization', `Bearer ${token}`)
         .then(() =>
           expect.fail(null, null, 'Request should not succeed')
@@ -181,8 +186,10 @@ describe('Auth endpoints', function () {
         {
           user: {
             username,
-            firstName,
-            lastName
+            userFullName,
+            userEmail,
+            userPhoneNumber,
+            userDescription 
           },
         },
         JWT_SECRET,
@@ -195,7 +202,7 @@ describe('Auth endpoints', function () {
 
       return chai
         .request(app)
-        .post('/api/auth/refresh')
+        .post('/auth/refresh')
         .set('authorization', `Bearer ${token}`)
         .then(() =>
           expect.fail(null, null, 'Request should not succeed')
@@ -214,8 +221,10 @@ describe('Auth endpoints', function () {
         {
           user: {
             username,
-            firstName,
-            lastName
+            userFullName,
+            userEmail,
+            userPhoneNumber,
+            userDescription 
           }
         },
         JWT_SECRET,
@@ -229,7 +238,7 @@ describe('Auth endpoints', function () {
 
       return chai
         .request(app)
-        .post('/api/auth/refresh')
+        .post('/auth/refresh')
         .set('authorization', `Bearer ${token}`)
         .then(res => {
           expect(res).to.have.status(200);
@@ -241,8 +250,10 @@ describe('Auth endpoints', function () {
           });
           expect(payload.user).to.deep.equal({
             username,
-            firstName,
-            lastName
+            userFullName,
+            userEmail,
+            userPhoneNumber,
+            userDescription 
           });
           expect(payload.exp).to.be.at.least(decoded.exp);
         });

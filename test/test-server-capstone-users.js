@@ -18,38 +18,34 @@ function seedUserData() {
     console.info('Seeding user data');
     const seedUserData = [];
 
-    for (let i=0; i<1; i++) {
+    for (let i=0; i<2; i++) {
         const promise = new Promise(function(resolve, reject) {
-            console.log("execute promise in loop: ", i);
+            console.log("execute seedUserData() promise in loop: ", i);
             const unhashed = "hellohello";
         
             return Users.hashPassword(unhashed)
             .then(function(password) {
                 const user = generateUser(password);
                 console.log("user: ", user);
-                return Users.create(user);
+                return Users.create(user);      // This step does not run!!!!
             })
-            .then(function() {
+            .then(function(res) {
+                console.log("seedUserData() res after Users.create : ", res.message);
                 resolve();
             })
             .catch(function(error) {
                 console.log(error.message);
                 reject(error.message);
-            })
-
+            });
         });
         seedUserData.push(promise);
-        console.log("finish loop: ", i);
+        console.log("finish seedUserData() promise: ", i);
     }
-/*
-    let count = 0;
-    while (count < 10) {
-        count++;
-    }
-*/
+
     return Promise.all(seedUserData)
     .then(function(seedData, reject) {
         console.log("creating seedData: ", seedData);
+        // if seedData is empty, could reject it to the catch.
         return seedData;
     })
     .catch(function(error) {
@@ -60,7 +56,7 @@ function seedUserData() {
 
 function generateUser(password) {
     const sampleUser = {
-        username : generateString() ,
+        username : generateFakerName() ,
         userFullName : generateString() ,
         userEmail : generateString() ,
         userPhoneNumber : generateString() ,
@@ -99,7 +95,7 @@ function getAuthenticationJWT() {
     .then(function(user) {
         console.log(user);
         currentUsername = user.username;
-        currentUserPassword = "hellohello"
+        currentUserPassword = "hellohello";
         console.log(`before`);
         console.log(currentUsername);
         console.log(currentUserPassword);
@@ -224,7 +220,7 @@ describe(`User Integration Testing`, function() {
     //});
 
     describe(`User POST requests`, function() {
-
+        // Note: I've since removed the response of user.serialize() from successful posting.
         it(`should post a new user into the database with all required keys (with correct values).`, function() {
             let newUser;
             const userKeys = [`userId`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userEntryIds`,`userDescription`];
@@ -242,17 +238,19 @@ describe(`User Integration Testing`, function() {
                     resUser = _res;
                     expect(resUser).to.have.status(201);
                     expect(resUser).to.be.json;
-                    expect(resUser.body).to.be.a('object');
-                    expect(resUser.body).to.have.keys(userKeys);
-                    return Users.find({userId : resUser.body.usersId});
+                    // expect(resUser.body).to.be.a('array'); // This should be here now.
+                    expect(resUser.body).to.be.a('object'); // !!!! Remove this.
+                    expect(resUser.body).to.have.keys(userKeys);    // !!!! Remove this.
+                    return Users.find({userId : resUser.body.usersId}); // !!!! Remove this.
                 })
                 .then(function(dbUser) {
+                    expect(dbUser.body).to.have.keys(userKeys);
                     userKeys.forEach(function(key) {
                         //if (key === "userId") {
-                        //    expect(resUser["userId"]).to.equal(chosenUser["_id"]);
+                        //    expect(resUser["userId"]).to.equal(chosenUser["_id"]); // !!!! Remove this.
                         //} else 
                         if (key !== "userEntryIds" && key !== "userId") {
-                            expect(resUser[key]).to.equal(dbUser[key]);
+                            expect(resUser[key]).to.equal(dbUser[key]); // !!!! Remove this.
                         }
                     });
                 })

@@ -1,13 +1,133 @@
 
+html {
+    margin: 0;
+    padding: 0;
+    height : 100%;
+    vertical-align: baseline;
+    background: transparent;
+    box-sizing : border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
 section {
     border : 2px solid black;
-    padding : 2px;
+    width : 90%;
+    margin : 0 auto;
+    padding : 10px;
+    z-index : 1;
 }
+
+header, main {
+    opacity : 1;
+}
+
+main {
+    padding : 10px;
+}
+
+header {
+    width : 90%;
+    margin : 0 auto;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+h1 {
+    line-height: 100%;
+    border-bottom : 2px solid black;
+    font-size : 3.5em;
+    font-weight: bold;
+    color: #000000;
+}
+
+h2 {
+    font-size : 2em;
+}
+
+h3 {
+    font-size : 1.5em;
+}
+
+/* Javascript-given properties */
 
 .hidden {
     display : none;
 }
 
 .highlighted {
-    color : lightcoral;
+    background-color : lightcoral;
+}
+
+/* Front Page specific */
+
+#front-image-container {
+    background-image : url("https://www.nextnature.net/app/uploads/2011/08/voeding_vanalles.jpg");
+    background-size : cover;
+    opacity: 0.3;
+    z-index : -1;
+}
+
+/* Navigation Bar */
+nav.nav-center ul {
+    text-align: center;
+}
+
+nav.nav-center ul li {
+    display: inline;
+    float: none;
+}
+
+nav.nav-center ul li button {
+    display: inline-block;
+}
+
+nav .material-icons {
+    height : 36px;
+    /* !!!!! needs adjusting to have icons properly situated.*/
+}
+
+/* Sections */
+
+.card {
+    margin-bottom : 10px;
+}
+
+.card-content {
+    padding : 0px 20px;
+}
+
+.form input {
+    background-color : white !important;
+}
+
+form {
+    padding : 0px 20px;
+    margin-bottom : 10px;
+}
+
+.form input[type="radio"] {
+    position : relative;
+    top : 2px;
+    opacity : 1;
+}
+
+fieldset {
+    margin : 5px 0px;
+}
+
+button {
+    margin-right : 10px;
+}
+
+.extra_button_container {
+    padding : 0px 20px;
+}
+
+.delete_entry_button:hover {
+    background-color : lightcoral;
 }
