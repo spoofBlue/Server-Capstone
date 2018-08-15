@@ -306,19 +306,29 @@ function main() {
     function displayStatusSection() {
         // Fills in the HTML of .status_section.  Pulls data from locally stored USER_ENTRIES to display each entry.
         $(`.status_section`).html(
-        `<h2>Status Page of ${USER.userFullName}</h2>
+        `<h3>Status Page of ${USER.userFullName}</h3>
         <ul></ul>`
         );
         USER_ENTRIES.forEach(entry => {
             $(`.status_section ul`).append(
                 `<li class="entry">
-                <h3>${entry.entryName}</h3>
-                <p>Role: ${entry.entryRole}</p>
-                <h4>Address: ${stringifyEntryAddress(entry.entryAddress)}</h4>
-                <p>Contact: ${entry.entryUserFullName}</p>
-                <p>Description: ${entry.entryDescription}</p>
-                <button class="view_entry_button" title="View Entry Button" value="${entry.entryId}">View</button>
-                <button class="update_entry_button" title="Update Entry Button" value="${entry.entryId}">Update</button>
+                <div class="row">
+                    <div class="col s12 m10 offset-m1">
+                        <div class="card orange lighten-4">
+                            <div class="card-content">
+                                <h4 class="card-title">${entry.entryName}</h4>
+                                <p class="right">Role: ${entry.entryRole}</p>
+                                <p>Address: ${stringifyEntryAddress(entry.entryAddress)}</p>
+                                <p>Contact: ${entry.entryUserFullName}</p>
+                                <p>Description: ${entry.entryDescription}</p>
+                            </div>
+                            <div class="card-action">
+                                <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${entry.entryId}">View</button>
+                                <button class="update_entry_button waves-effect waves-light btn" title="Update Entry Button" value="${entry.entryId}">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 </li>`
             );
         });
@@ -326,7 +336,7 @@ function main() {
 
     function displayEmptyStatus() {
         $(`.status_section`).html(
-        `<h2>Status Page of ${USER.userFullName}</h2>
+        `<h3>Status Page of ${USER.userFullName}</h3>
         <p>You currently have no entries listed. Click on the New Entry tab to create a new entry!</p>`
         );
     }
@@ -356,8 +366,8 @@ function main() {
     function displayCreateNewEntrySection() {
         // Fills in the HTML of .create_new_entry_section.  Autofills data from locally stored USER to help.
         $(`.create_new_entry_section`).html(
-            `<h2>Create New Entry</h2>
-            <form role="form">
+            `<h3>Create New Entry</h3>
+            <form role="form" action="#" class="form">
                 <fieldset>
                     <legend>Is this location a donator or receiver?</legend>
                     <input type="radio" name="entryRole" value="Donator" class="radio_donator_or_receiver" id="radio_donator" required>
@@ -397,7 +407,7 @@ function main() {
                 <label for="input_entry_foodAvailable">Food Available:</label>
                 <input type="text" name="entryFoodAvailable" placeholder="Several dozen bagels weekly.  Several gallons of milk weekly." id="input_entry_foodAvailable"
                     required>
-                <button type="submit" class="submit_new_entry_button" title="Submit New Entry Button">Create Entry</button>
+                <button type="submit" class="submit_new_entry_button waves-effect waves-light btn" title="Submit New Entry Button">Create Entry</button>
             </form>`
         );
     }
@@ -426,8 +436,8 @@ function main() {
     function displaySearchEntrySection() {
         // Fills in the HTML of .create_new_entry_section.  Autofills data from locally stored USER to help.
         $(`.search_entry_section`).html(
-            `<h2>Search Entries</h2>
-            <form role="form" id="search_form">
+            `<h3>Search Entries</h3>
+            <form role="form" class="form" id="search_form">
                 <fieldset>
                     <legend>Search for donators or receivers?</legend>
                     <input type="radio" name="entryRole" value="Donator" class="radio_donator_or_receiver" id="radio_donator" required>
@@ -441,7 +451,7 @@ function main() {
                     <input type="text" name="searchZipcode" placeholder="90210" id="input_entry_zipcode" required>
                     <label for="input_mile_radius">Within this many miles:</label>
                     <input type="text" name="searchMileRadius" placeholder="15 maximum" id="input_mile_radius" required>
-                    <button type="submit" class="search_button" title="Start Search Button" >Start Search</button>
+                    <button type="submit" class="search_button waves-effect waves-light btn" title="Start Search Button" >Start Search</button>
                 </fieldset>
             </form>`
         )
@@ -494,20 +504,20 @@ function main() {
         console.log("Let's view the entry.")
         if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
             $(`.view_entry_section`).html(
-                `<button class="back_button return_back_to_search_results" title="Back Button">Go Back to Search Results</button>`
+                `<button class="back_button return_back_to_search_results waves-effect waves-light btn right" title="Back Button">Go Back to Search Results</button>`
             );
         } else { // Then (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`)
             $(`.view_entry_section`).html(
-                `<button class="back_button return_back_to_user_entries" title="Back Button">Go Back to your Entries</button>`
+                `<button class="back_button return_back_to_user_entries waves-effect waves-light btn right" title="Back Button">Go Back to your Entries</button>`
             );
         }
         
         $(`.view_entry_section`).append(
-            `<h2>View Entry for ${CURRENT_ENTRY.entryName}.</h2>
+            `<h3>Entry: ${CURRENT_ENTRY.entryName}</h3>
             <p>Role: ${CURRENT_ENTRY.entryRole}</p>
-            <h3>${stringifyEntryAddress(CURRENT_ENTRY.entryAddress)}</h3>
+            <h4>${stringifyEntryAddress(CURRENT_ENTRY.entryAddress)}</h4>
             <section class="contact_info">
-                <h3>Contact: ${CURRENT_ENTRY.entryUserFullName}</h3>
+                <h5>Contact: ${CURRENT_ENTRY.entryUserFullName}</h5>
                 <p>Contact's E-mail: ${CURRENT_ENTRY.entryUserEmail}</p>
                 <p>Contact's Phone Number: ${CURRENT_ENTRY.entryUserPhoneNumber}</p>
             </section>
@@ -518,8 +528,8 @@ function main() {
         );
         if (CURRENT_ENTRY.entryUsersId === USER.userId) {
             $(`.view_entry_section`).append(
-                `<button class="update_entry_button" title="Update Entry Button" value="${CURRENT_ENTRY.entryId}">Update</button>
-                <button class="delete_entry_button" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>`
+                `<button class="update_entry_button waves-effect waves-light btn" title="Update Entry Button" value="${CURRENT_ENTRY.entryId}">Update</button>
+                <button class="delete_entry_button waves-effect waves-light red darken-1 btn" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>`
 
             );
         }
@@ -556,10 +566,12 @@ function main() {
     function displayUpdateEntrySection() {
         // Fills in the HTML of .update_entry_section.  Uses data from CURRENT_ENTRY.
         $(`.update_entry_section`).html(
-            `<h2>Update Entry for ${CURRENT_ENTRY.entryName}</h2>
-            <form role="form" id="update_entry_form"></form>
-            <button class="view_entry_button" title="View Entry Button" value="${CURRENT_ENTRY.entryId}">View</button>
-            <button class="delete_entry_button" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>`
+            `<h3>Update Entry for ${CURRENT_ENTRY.entryName}</h3>
+            <form role="form" action="#" class="form" id="update_entry_form"></form>
+            <div class="extra_button_container">
+                <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${CURRENT_ENTRY.entryId}">View</button>
+                <button class="delete_entry_button waves-effect waves-light red darken-1 btn" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>
+            </div>`
         );
         if (CURRENT_ENTRY.entryRole === `Donator`) {        // Then the `Donator` value is checked.
             $(`.update_entry_section form`).append(
@@ -615,7 +627,7 @@ function main() {
                 </fieldset>
                 <label for="input_entry_foodAvailable">Food Available:</label>
                 <input type="text" name="entryFoodAvailable" value="${CURRENT_ENTRY.entryFoodAvailable}" id="input_entry_foodAvailable">
-                <button type="submit" class="submit_updated_entry_button" title="Submit Updated Entry Button" value="${CURRENT_ENTRY.entryId}">Update Entry</button>`
+                <button type="submit" class="submit_updated_entry_button waves-effect waves-light btn" title="Submit Updated Entry Button" value="${CURRENT_ENTRY.entryId}">Update Entry</button>`
                 // Could add in the delete button onto the update page.  Don't want users to accidently delete instead of update though.
                 
                 // Could add the view button as well.  Unecessary? Just hit update without changing anything.
@@ -744,23 +756,23 @@ function main() {
     function displaySearchResultSection(entries) {
         // Display each entry from SEARCH_ENTRIES.
         $(`.search_results_section`).html(
-            `<h2>Results: ${entries.length} entries.</h2>
+            `<h3>Results: ${entries.length} entries.</h3>
             <ul></ul>`
         );
         entries.forEach(entry => {
             $(`.search_results_section ul`).append(
                 `<li class="entry">
-                <h3>${entry.entryName}</h3>
+                <h4>${entry.entryName}</h4>
                 <p>Role: ${entry.entryRole}</p>
-                <h4>Address: ${stringifyEntryAddress(entry.entryAddress)}</h4>
+                <h5>Address: ${stringifyEntryAddress(entry.entryAddress)}</h5>
                 <p>Contact: ${entry.entryUserFullName}</p>
                 <p>Description: ${entry.entryDescription}</p>
-                <button class="view_entry_button" title="View Entry Button" value="${entry.entryId}">View</button>
+                <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${entry.entryId}">View</button>
                 `
             );
             if (entry.entryUsersId === USER.userId) {
                 $(`.search_results_section ul`).append(
-                    `<button class="update_entry_button" title="Update Entry Button" value="${entry.entryId}">Update</button>`
+                    `<button class="update_entry_button waves-effect waves-light btn" title="Update Entry Button" value="${entry.entryId}">Update</button>`
                 );
             }
             $(`.search_results_section ul`).append(`

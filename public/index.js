@@ -6,6 +6,7 @@ function main() {
     function intializePage() {
         handleCreateNewAccountButtonClick();
         handleSubmitNewAccountButtonClick();
+        handleBackButtonClick();
         handleLoginButton();
     }
 
@@ -119,6 +120,14 @@ function main() {
         })*/
         .catch(error => {
             return error.message;
+        });
+    }
+
+    function handleBackButtonClick() {
+        $(`.create_new_account_section`).on(`click`, `.back_button`, function() {
+            console.log(`ran handleBackButtonClick`);
+            hideAllSections();
+            unhideSection(`login_section`);
         });
     }
 

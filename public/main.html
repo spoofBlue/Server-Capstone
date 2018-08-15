@@ -5,32 +5,46 @@
     <meta charset="utf-8">
     <meta name="description" value="Give and receive normally wasted food here!">
     <meta name="viewport" content="width=device-width">
-    <link href="index.css" rel="stylesheet" type="text/css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js"></script>
+    <!-- Document-specific CSS -->
+    <link href="index.css" rel="stylesheet" type="text/css">
 </head>
 
 <body>
-    <section role="naviagation" class="access_tabs_section">
-        <ul>
-            <li><button class="status_tab" title="Status Tab">Status</button></li>
-            <li><button class="create_new_entry_tab" title="Create Entry Tab">Create Entry</button></li>
-            <li><button class="search_entry_tab" title="Search Tab">Search Entry</button></li>
-            <li><button class="logout_tab" title="Log Out Tab">Log Out</button></li>
-        </ul>
-    </section>
+    <div class="navbar-fixed">
+        <nav role="naviagation" class="access_tabs_section nav-center blue darken-2">
+            <div class="nav-wrapper container">
+                    <ul>
+                        <li><button class="status_tab waves-effect waves-light btn" title="Status Tab">My Entries</button></li>
+                        <li><button class="create_new_entry_tab waves-effect waves-light btn" title="Create Entry Tab">Create Entry</button></li>
+                        <li><button class="search_entry_tab waves-effect waves-light btn" title="Search Tab">Search Entries</button></li>
+                        <li><button class="logout_tab waves-effect waves-light btn" title="Log Out Tab">Log Out</button></li>
+                        <!--!!!! <i class="material-icons left">add</i>-->
+                    </ul>
+            </div>
+        </nav>
+    </div>
     <header role="header">
         <h1 role="title">Harvest United</h1>
         <h2>Reducing food waste; eateries and stores with otherwise wasted food connect with organizations helping the needy.</h2>
     </header>
     
     <main role="main">
-    <section class="notification_section hidden"></section>
+    <section class="notification_section orange lighten-4 hidden"></section>
     <section class="status_section"></section>
-    <section class="create_new_entry_section hidden"></section>
-    <section class="search_entry_section hidden"></section>
+    <section class="create_new_entry_section orange lighten-4 hidden"></section>
+    <section class="search_entry_section orange lighten-4 hidden"></section>
     <section class="search_results_section hidden"></section>
-    <section class="view_entry_section hidden"></section>
-    <section class="update_entry_section hidden"></section>
+    <section class="view_entry_section orange lighten-4 hidden"></section>
+    <section class="update_entry_section orange lighten-4 hidden"></section>
     </main>
     
     <script src="temp-data.js"></script>
