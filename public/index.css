@@ -1,31 +1,22 @@
 
 html {
-    margin: 0;
-    padding: 0;
     height : 100%;
-    vertical-align: baseline;
-    background: transparent;
-    box-sizing : border-box;
 }
 
 body {
     font-family: 'Roboto', sans-serif;
+    height : 100%;
 }
 
 section {
-    border : 2px solid black;
-    width : 90%;
+    border-top : 2px solid rgb(2, 0, 105); /* !!!!! Remove */
     margin : 0 auto;
     padding : 10px;
     z-index : 1;
 }
 
-header, main {
-    opacity : 1;
-}
-
 main {
-    padding : 10px;
+    padding : 0;
 }
 
 header {
@@ -37,12 +28,17 @@ h1, h2 {
     text-align: center;
 }
 
+h3, h4 {
+    margin : 0;
+}
+
 h1 {
     line-height: 100%;
     border-bottom : 2px solid black;
     font-size : 3.5em;
     font-weight: bold;
-    color: #000000;
+    margin-top : 0;
+    padding-top : 20px;
 }
 
 h2 {
@@ -67,9 +63,15 @@ h3 {
 
 #front-image-container {
     background-image : url("https://www.nextnature.net/app/uploads/2011/08/voeding_vanalles.jpg");
+    height : 100%;
     background-size : cover;
-    opacity: 0.3;
     z-index : -1;
+}
+
+.overlay {
+    width : 100%;
+    height : 100%;
+    background-color : rgba(255,255,255,0.8);
 }
 
 /* Navigation Bar */
@@ -82,10 +84,6 @@ nav.nav-center ul li {
     float: none;
 }
 
-nav.nav-center ul li button {
-    display: inline-block;
-}
-
 nav .material-icons {
     height : 36px;
     /* !!!!! needs adjusting to have icons properly situated.*/
@@ -93,16 +91,12 @@ nav .material-icons {
 
 /* Sections */
 
-.card {
-    margin-bottom : 10px;
-}
-
 .card-content {
-    padding : 0px 20px;
+    padding : 1.5em;
 }
 
-.form input {
-    background-color : white !important;
+.card-action {
+    border-top : 1px solid black;
 }
 
 form {
@@ -114,10 +108,24 @@ form {
     position : relative;
     top : 2px;
     opacity : 1;
+    pointer-events: inherit;
+}
+
+.form input[type="text"] {
+    background-color : white !important;
+    border-bottom : 1px solid rgb(59, 59, 59);
+    padding-left : 2%;
+    width : 98%;
 }
 
 fieldset {
     margin : 5px 0px;
+}
+
+label {
+    font-size: 1.2em;
+    color: black;
+    font-weight: bold;
 }
 
 button {
@@ -128,6 +136,18 @@ button {
     padding : 0px 20px;
 }
 
+.delete_entry_button {
+    background-color : rgb(221, 25, 22);
+}
+
 .delete_entry_button:hover {
-    background-color : lightcoral;
+    background-color : rgb(230, 61, 61);
+}
+
+.status_section, .search_results_section {
+    background-color : turquoise;
+}
+
+.login_section, create_new_account_section {
+    border : 2px solid black;
 }
