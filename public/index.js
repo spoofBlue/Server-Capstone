@@ -8,6 +8,10 @@ function main() {
         handleSubmitNewAccountButtonClick();
         handleBackButtonClick();
         handleLoginButton();
+
+        $(document).ready(function(){
+            $('.collapsible').collapsible();
+        });
     }
 
     function hideAllSections() {

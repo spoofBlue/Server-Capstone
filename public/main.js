@@ -133,7 +133,10 @@ function main() {
     function hideAllSections() {
         // Adds the `hidden` CSS class (which has display:none) from all sections, making them invisible in the HTML.
         const sections = [`notification_section`,`status_section`, `create_new_entry_section`, `search_entry_section`, `search_results_section`, `view_entry_section`, `update_entry_section`];
-        sections.forEach(section => $(`.${section}`).addClass(`hidden`));
+        sections.forEach(section => {
+            $(`.${section}`).addClass(`hidden`);
+            $(`.${section}`).empty();
+        })
     }
 
     function unhideSection(section) {
@@ -370,10 +373,12 @@ function main() {
             <form role="form" action="#" class="form">
                 <fieldset>
                     <legend>Is this location a donator or receiver?</legend>
-                    <input type="radio" name="entryRole" value="Donator" class="radio_donator_or_receiver" id="radio_donator" required>
-                    <label for="radio_donator">Donator</label>
-                    <input type="radio" name="entryRole" value="Receiver" class="radio_donator_or_receiver" id="radio_receiver" required>
-                    <label for="radio_receiver">Receiver</label>
+                    <label for="radio_donator"><span>Donator</span>
+                    <input type="radio" name="entryRole" value="Donator" id="radio_donator" required>
+                    </label>
+                    <label for="radio_receiver"><span>Receiver</span>
+                    <input type="radio" name="entryRole" value="Receiver" id="radio_receiver" required>
+                    </label>
                 </fieldset>
                 <fieldset>
                     <legend>Business Info</legend>
@@ -529,7 +534,7 @@ function main() {
         if (CURRENT_ENTRY.entryUsersId === USER.userId) {
             $(`.view_entry_section`).append(
                 `<button class="update_entry_button waves-effect waves-light btn" title="Update Entry Button" value="${CURRENT_ENTRY.entryId}">Update</button>
-                <button class="delete_entry_button waves-effect waves-light red darken-1 btn" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>`
+                <button class="delete_entry_button waves-effect waves-light btn" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>`
 
             );
         }
@@ -570,17 +575,19 @@ function main() {
             <form role="form" action="#" class="form" id="update_entry_form"></form>
             <div class="extra_button_container">
                 <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${CURRENT_ENTRY.entryId}">View</button>
-                <button class="delete_entry_button waves-effect waves-light red darken-1 btn" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>
+                <button class="delete_entry_button waves-effect waves-light btn" title="Delete Entry Button" value="${CURRENT_ENTRY.entryId}">Delete</button>
             </div>`
         );
         if (CURRENT_ENTRY.entryRole === `Donator`) {        // Then the `Donator` value is checked.
             $(`.update_entry_section form`).append(
                 `<fieldset>
                     <legend>Is this location a donator or receiver?</legend>
-                    <input type="radio" name="entryRole" value="Donator" class="radio_donator_or_receiver" id="radio_donator" checked required>
-                    <label for="radio_donator">Donator</label>
-                    <input type="radio" name="entryRole" value="Receiver" class="radio_donator_or_receiver" id="radio_receiver" required>
-                    <label for="radio_receiver">Receiver</label>
+                    <label for="radio_donator"><span>Donator</span>
+                    <input type="radio" name="entryRole" value="Donator" id="radio_donator" checked required>
+                    </label>
+                    <label for="radio_receiver"><span>Receiver</span>
+                    <input type="radio" name="entryRole" value="Receiver" id="radio_receiver" required>
+                    </label>
                 </fieldset>`
             );
         } else 
@@ -588,9 +595,9 @@ function main() {
             $(`.update_entry_section form`).append(      // Then the `Receiver` value is checked.
                 `<fieldset>
                     <legend>Is this location a donator or receiver?</legend>
-                    <input type="radio" name="entryRole" value="Donator" class="radio_donator_or_receiver" id="radio_donator" required>
+                    <input type="radio" name="entryRole" value="Donator" id="radio_donator" required>
                     <label for="radio_donator">Donator</label>
-                    <input type="radio" name="entryRole" value="Receiver" class="radio_donator_or_receiver" id="radio_receiver" checked required>
+                    <input type="radio" name="entryRole" value="Receiver" id="radio_receiver" checked required>
                     <label for="radio_receiver">Receiver</label>
                 </fieldset>`
             );
@@ -762,22 +769,48 @@ function main() {
         entries.forEach(entry => {
             $(`.search_results_section ul`).append(
                 `<li class="entry">
-                <h4>${entry.entryName}</h4>
-                <p>Role: ${entry.entryRole}</p>
-                <h5>Address: ${stringifyEntryAddress(entry.entryAddress)}</h5>
-                <p>Contact: ${entry.entryUserFullName}</p>
-                <p>Description: ${entry.entryDescription}</p>
-                <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${entry.entryId}">View</button>
-                `
-            );
+                <div class="row">
+                    <div class="col s12 m10 offset-m1">
+                        <div class="card orange lighten-4">
+                            <div class="card-content">
+                                <h4 class="card-title">${entry.entryName}</h4>
+                                <p class="right">Role: ${entry.entryRole}</p>
+                                <p>Address: ${stringifyEntryAddress(entry.entryAddress)}</h5>
+                                <p>Contact: ${entry.entryUserFullName}</p>
+                                <p>Description: ${entry.entryDescription}</p>
+                            </div>
+                            <div class="card-action card-action-${entry.entryId}">
+                                <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${entry.entryId}">View</button>
+            `);
             if (entry.entryUsersId === USER.userId) {
-                $(`.search_results_section ul`).append(
+                $(`.search_results_section .card-action-${entry.entryId}`).append(
                     `<button class="update_entry_button waves-effect waves-light btn" title="Update Entry Button" value="${entry.entryId}">Update</button>`
                 );
             }
             $(`.search_results_section ul`).append(`
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </li>
             `);
+            /*
+            <div class="row">
+                    <div class="col s12 m10 offset-m1">
+                        <div class="card orange lighten-4">
+                            <div class="card-content">
+                                <p>Address: ${stringifyEntryAddress(entry.entryAddress)}</p>
+                                <p>Contact: ${entry.entryUserFullName}</p>
+                                <p>Description: ${entry.entryDescription}</p>
+                            </div>
+                            <div class="card-action">
+                                <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${entry.entryId}">View</button>
+                                <button class="update_entry_button waves-effect waves-light btn" title="Update Entry Button" value="${entry.entryId}">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            */
         });    
     }
 
@@ -812,6 +845,7 @@ function main() {
                         unhideSection(`view_entry_section`);
                         CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
                         displayViewEntrySection();
+                        M.toast({html: 'Entry created!'});
                     })
                     .catch(error => {
                         console.log(error.message);
@@ -907,8 +941,8 @@ function main() {
                         updateEntryInUserEntries(updatedEntry);
                         hideAllSections();
                         unhideSection(`view_entry_section`);
-                        CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
                         displayViewEntrySection();
+                        M.toast({html: 'Entry updated!'});
                     })
                     .catch(error => {
                         console.log(error.message);
@@ -982,6 +1016,7 @@ function main() {
                         deleteEntryInUserEntries(entryIdToDelete);
 
                         loadStatusSection();
+                        M.toast({html: 'Entry deleted.'});
                     })
                     .catch(error => {
                         console.log(error.message);
@@ -1034,6 +1069,7 @@ function main() {
                     hideAllSections();
                     unhideSection(`search_entry_section`);
                     unhideSection(`search_results_section`);
+
                     displaySearchResultSection(SEARCH_ENTRIES);  // Chose not to simply unhide this section, as it may be updated. Updating HTML.  
                 }
             })
