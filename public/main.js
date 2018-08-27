@@ -10,7 +10,6 @@ function main() {
     let SEARCH_ENTRIES;
     let CURRENT_ENTRY;
     let CURRENT_ENTRY_SOURCE;
-    let FORM_INPUTS;
 
     function initializePage() {
 
@@ -32,17 +31,26 @@ function main() {
 
             getUserInfo()
             .then(() => {
+                loadSideNavigation();
                 loadStatusSection();
             });
         })
         .catch(error => {
             console.log(`initializePage. error = `, error.message);
             localStorage.setItem(`harvest_united_status`, `Local session timed out.`);
-            //loadLoginPage();
+            loadLoginPage();
         }); 
+    }
+    
+    function loadSideNavigation() {
+        // Establishes the side navigation bar to be operable. (May only have display not set to none when screen is small).
+        $(document).ready(function(){
+            $('.sidenav').sidenav();
+        });
     }
 
     function establishCredentials() {
+        // Load, then remove credentials passed on from the index.js save to localStorage.  To retain JWT key and username.
         JWT_KEY = localStorage.getItem(`harvest_united_jwt`);
         USERNAME = localStorage.getItem(`harvest_united_username`);
         localStorage.removeItem(`harvest_united_jwt`);
@@ -126,7 +134,6 @@ function main() {
                 }
             });
         });
-
         return user_entries_promise;
     }
 
@@ -275,6 +282,7 @@ function main() {
 
      function notifyUser(message) {
          // Unhides the notification section and posts the message String.
+         console.log(`ran notifyUser.`);
          unhideSection(`notification_section`);
          $(`.notification_section`).html(`
          <p>${message}</p>
@@ -309,7 +317,7 @@ function main() {
     function displayStatusSection() {
         // Fills in the HTML of .status_section.  Pulls data from locally stored USER_ENTRIES to display each entry.
         $(`.status_section`).html(
-        `<h3>Status Page of ${USER.userFullName}</h3>
+        `<h3><strong>Status Page of ${USER.userFullName}<strong></h3>
         <ul></ul>`
         );
         USER_ENTRIES.forEach(entry => {
@@ -320,10 +328,10 @@ function main() {
                         <div class="card orange lighten-4">
                             <div class="card-content">
                                 <h4 class="card-title">${entry.entryName}</h4>
-                                <p class="right">Role: ${entry.entryRole}</p>
-                                <p>Address: ${stringifyEntryAddress(entry.entryAddress)}</p>
-                                <p>Contact: ${entry.entryUserFullName}</p>
-                                <p>Description: ${entry.entryDescription}</p>
+                                <p class="float-right"><b>Role:</b> ${entry.entryRole}</p>
+                                <p><b>Address:</b> ${stringifyEntryAddress(entry.entryAddress)}</p>
+                                <p><b>Contact:</b> ${entry.entryUserFullName}</p>
+                                <p><b>Description:</b> ${entry.entryDescription}</p>
                             </div>
                             <div class="card-action">
                                 <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${entry.entryId}">View</button>
@@ -373,12 +381,10 @@ function main() {
             <form role="form" action="#" class="form">
                 <fieldset>
                     <legend>Is this location a donator or receiver?</legend>
-                    <label for="radio_donator"><span>Donator</span>
                     <input type="radio" name="entryRole" value="Donator" id="radio_donator" required>
-                    </label>
-                    <label for="radio_receiver"><span>Receiver</span>
+                    <label for="radio_donator">Donator</label>
                     <input type="radio" name="entryRole" value="Receiver" id="radio_receiver" required>
-                    </label>
+                    <label for="radio_receiver">Receiver</label>
                 </fieldset>
                 <fieldset>
                     <legend>Business Info</legend>
@@ -509,26 +515,26 @@ function main() {
         console.log("Let's view the entry.")
         if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
             $(`.view_entry_section`).html(
-                `<button class="back_button return_back_to_search_results waves-effect waves-light btn right" title="Back Button">Go Back to Search Results</button>`
+                `<button class="back_button return_back_to_search_results waves-effect waves-light btn right" title="Back Button">Go Back</button>`
             );
         } else { // Then (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`)
             $(`.view_entry_section`).html(
-                `<button class="back_button return_back_to_user_entries waves-effect waves-light btn right" title="Back Button">Go Back to your Entries</button>`
+                `<button class="back_button return_back_to_user_entries waves-effect waves-light btn right" title="Back Button">Go Back</button>`
             );
         }
         
         $(`.view_entry_section`).append(
-            `<h3>Entry: ${CURRENT_ENTRY.entryName}</h3>
-            <p>Role: ${CURRENT_ENTRY.entryRole}</p>
-            <h4>${stringifyEntryAddress(CURRENT_ENTRY.entryAddress)}</h4>
-            <section class="contact_info">
-                <h5>Contact: ${CURRENT_ENTRY.entryUserFullName}</h5>
-                <p>Contact's E-mail: ${CURRENT_ENTRY.entryUserEmail}</p>
-                <p>Contact's Phone Number: ${CURRENT_ENTRY.entryUserPhoneNumber}</p>
-            </section>
-            <p>Date Created: ${CURRENT_ENTRY.entryCreationDate}</p> 
-            <p>Description: ${CURRENT_ENTRY.entryDescription}.</p>
-            <p>Food Available: ${CURRENT_ENTRY.entryFoodAvailable}</p>`
+            `<h3><strong>Entry: ${CURRENT_ENTRY.entryName}</strong></h3>
+            <p><b>Role:</b> ${CURRENT_ENTRY.entryRole}</p>
+            <h4 class="view_entry_entryAddress">${stringifyEntryAddress(CURRENT_ENTRY.entryAddress)}</h4>
+            <div class="view_entry_contact_info">
+                <p><em>Contact:</em> ${CURRENT_ENTRY.entryUserFullName}</p>
+                <p><em>Contact's E-mail:</em> ${CURRENT_ENTRY.entryUserEmail}</p>
+                <p><em>Contact's Phone Number:</em> ${CURRENT_ENTRY.entryUserPhoneNumber}</p>
+            </div>
+            <p><b>Date Created:</b> ${CURRENT_ENTRY.entryCreationDate}</p> 
+            <p><b>Description:</b> ${CURRENT_ENTRY.entryDescription}.</p>
+            <p class="view_entry_foodAvailable"><b>Food Available:</b> ${CURRENT_ENTRY.entryFoodAvailable}</p>`
 
         );
         if (CURRENT_ENTRY.entryUsersId === USER.userId) {
@@ -582,12 +588,10 @@ function main() {
             $(`.update_entry_section form`).append(
                 `<fieldset>
                     <legend>Is this location a donator or receiver?</legend>
-                    <label for="radio_donator"><span>Donator</span>
                     <input type="radio" name="entryRole" value="Donator" id="radio_donator" checked required>
-                    </label>
-                    <label for="radio_receiver"><span>Receiver</span>
+                    <label for="radio_donator">Donator</label>
                     <input type="radio" name="entryRole" value="Receiver" id="radio_receiver" required>
-                    </label>
+                    <label for="radio_receiver">Receiver</label>
                 </fieldset>`
             );
         } else 
@@ -634,11 +638,7 @@ function main() {
                 </fieldset>
                 <label for="input_entry_foodAvailable">Food Available:</label>
                 <input type="text" name="entryFoodAvailable" value="${CURRENT_ENTRY.entryFoodAvailable}" id="input_entry_foodAvailable">
-                <button type="submit" class="submit_updated_entry_button waves-effect waves-light btn" title="Submit Updated Entry Button" value="${CURRENT_ENTRY.entryId}">Update Entry</button>`
-                // Could add in the delete button onto the update page.  Don't want users to accidently delete instead of update though.
-                
-                // Could add the view button as well.  Unecessary? Just hit update without changing anything.
-                
+                <button type="submit" class="submit_updated_entry_button waves-effect waves-light btn" title="Submit Updated Entry Button" value="${CURRENT_ENTRY.entryId}">Update Entry</button>`   
         );
     }
 
@@ -665,29 +665,28 @@ function main() {
                 if (verifyAcceptableUserInputs(form_inputs)) {
                     getNearbyZipcodes(form_inputs)
                     .then(zipcodes => {
-                        const role = form_inputs["entryRole"].value;
-                        return getSearchEntries(zipcodes, role);
+                        return getSearchEntries(zipcodes, form_inputs);
                     })
                     .then((arrayOfarrayofEntries) => {
-                        const entries = arrayOfarrayofEntries.reduce(function(acc, current) {
-                            acc.push(...current);
-                            return acc;
+                        const entries = arrayOfarrayofEntries.reduce(function(accumulation, current) {
+                            accumulation.push(...current);
+                            return accumulation;
                         }, []);
 
-                        console.log(entries);    
+                        console.log(`handleSearchButtonClick. entries= `,entries);    
                         CURRENT_ENTRY_SOURCE = `SEARCH_ENTRIES`;
                         SEARCH_ENTRIES = entries;
                         unhideSection(`search_results_section`);
                         displaySearchResultSection(entries);
                     })
-                    .catch(error => {
-                        return console.log(error.message);
+                    .catch(() => {
+                        console.log("Invalid zipcode entered.");
                     });
                 }
             })
-            .catch(error => {
-                console.log(error.message);
-            }); 
+            .catch(() => {
+                console.log("No search entries shown.");
+            });
         });
     }
 
@@ -711,6 +710,7 @@ function main() {
                     zipCodes.push(area.postalCode);
                 });
             }
+            console.log(`getNearbyZipcodes zipCodes.`, zipCodes);
             return zipCodes;
         })
         .catch(error => {
@@ -719,17 +719,21 @@ function main() {
         });
     }
 
-    function getSearchEntries(zipCodes, role) {
+    function getSearchEntries(zipCodes, form_inputs) {
         // Given an array of zipcodes and a string role, this makes a GET request for all entries in database with zipcode and role.
         // Getting serialized information on the entries of a specific zipcode to store in SEARCH_ENTRIES.
         // GET request!!
+
+        const role = form_inputs["entryRole"].value;
         if (zipCodes.length === 0) {
-            notifyUser(`No areas were found near ${FORM_INPUTS["Zipcode"].value}.`)
+            console.log(`getSearchEntries. zipCodes.length = 0.`);
+            console.log(`getSearchEntries .FORM_INPUTS=` , form_inputs);
+            notifyUser(`${form_inputs["searchZipcode"].value} is not a valid zipcode!`);
             return Promise.reject();
         } else {
-            console.log(zipCodes);
+            console.log(`getSearchEntries. zipCodes=`, zipCodes);
             const concurrentPromises = zipCodes.map(zipcode => {
-                return getEntriesByZipcode(zipcode, role);      // The function runs, but we don't get transferred to the .then or .catch
+                return getEntriesByZipcode(zipcode, role);
             });
             
             return Promise.all(concurrentPromises)
@@ -774,10 +778,10 @@ function main() {
                         <div class="card orange lighten-4">
                             <div class="card-content">
                                 <h4 class="card-title">${entry.entryName}</h4>
-                                <p class="right">Role: ${entry.entryRole}</p>
-                                <p>Address: ${stringifyEntryAddress(entry.entryAddress)}</h5>
-                                <p>Contact: ${entry.entryUserFullName}</p>
-                                <p>Description: ${entry.entryDescription}</p>
+                                <p class="right"><b>Role:</b> ${entry.entryRole}</p>
+                                <p><b>Address:</b> ${stringifyEntryAddress(entry.entryAddress)}</p>
+                                <p><b>Contact:</b> ${entry.entryUserFullName}</p>
+                                <p><b>Description:</b> ${entry.entryDescription}</p>
                             </div>
                             <div class="card-action card-action-${entry.entryId}">
                                 <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${entry.entryId}">View</button>
@@ -794,23 +798,6 @@ function main() {
                 </div>
             </li>
             `);
-            /*
-            <div class="row">
-                    <div class="col s12 m10 offset-m1">
-                        <div class="card orange lighten-4">
-                            <div class="card-content">
-                                <p>Address: ${stringifyEntryAddress(entry.entryAddress)}</p>
-                                <p>Contact: ${entry.entryUserFullName}</p>
-                                <p>Description: ${entry.entryDescription}</p>
-                            </div>
-                            <div class="card-action">
-                                <button class="view_entry_button waves-effect waves-light btn" title="View Entry Button" value="${entry.entryId}">View</button>
-                                <button class="update_entry_button waves-effect waves-light btn" title="Update Entry Button" value="${entry.entryId}">Update</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            */
         });    
     }
 

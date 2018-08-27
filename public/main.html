@@ -20,25 +20,33 @@
 
 <body>
     <div class="navbar-fixed">
-        <nav role="naviagation" class="access_tabs_section nav-center blue darken-2">
+        <nav role="menubar" class="access_tabs_section nav-center blue darken-2">
+            <a href="#" data-target="slide-out" class="sidenav-trigger left"><i class="material-icons">menu</i></a>
             <div class="nav-wrapper container">
                     <ul>
-                        <li><button class="status_tab waves-effect waves-light btn" title="Status Tab">My Entries</button></li>
-                        <li><button class="create_new_entry_tab waves-effect waves-light btn" title="Create Entry Tab">Create Entry</button></li>
-                        <li><button class="search_entry_tab waves-effect waves-light btn" title="Search Tab">Search Entries</button></li>
-                        <li><button class="logout_tab waves-effect waves-light btn" title="Log Out Tab">Log Out</button></li>
-                        <!--!!!! <i class="material-icons left">add</i>-->
+                        <li role="menuitem"><button class="status_tab waves-effect waves-light btn" title="Status Tab">My Entries</button></li>
+                        <li role="menuitem"><button class="create_new_entry_tab waves-effect waves-light btn" title="Create Entry Tab">Create Entry</button></li>
+                        <li role="menuitem"><button class="search_entry_tab waves-effect waves-light btn" title="Search Tab">Search Entries</button></li>
+                        <li role="menuitem"><button class="logout_tab waves-effect waves-light btn" title="Log Out Tab">Log Out</button></li>
                     </ul>
             </div>
         </nav>
     </div>
+    <ul id="slide-out" class="sidenav">
+        <li role="menuitem"><button class="status_tab waves-effect waves-light btn" title="Status Tab">My Entries</button></li>
+        <li role="menuitem"><button class="create_new_entry_tab waves-effect waves-light btn" title="Create Entry Tab">Create Entry</button></li>
+        <li role="menuitem"><button class="search_entry_tab waves-effect waves-light btn" title="Search Tab">Search Entries</button></li>
+        <li role="menuitem"><button class="logout_tab waves-effect waves-light btn" title="Log Out Tab">Log Out</button></li>
+    </ul>
+              
     <header role="header">
         <h1 role="title">Harvest United</h1>
-        <h2>Reducing food waste; eateries and stores with otherwise wasted food connect with organizations helping the needy.</h2>
+        <h2>To reducing food waste, eateries and stores with otherwise wasted food connect with organizations helping the needy.</h2>
     </header>
-    
+    <div id="front-image-container">
+        <div class="overlay">
     <main role="main">
-    <section class="notification_section orange lighten-4 hidden"></section>
+    <section class="notification_section hidden"></section>
     <section class="status_section"></section>
     <section class="create_new_entry_section orange lighten-4 hidden"></section>
     <section class="search_entry_section orange lighten-4 hidden"></section>
@@ -46,6 +54,8 @@
     <section class="view_entry_section orange lighten-4 hidden"></section>
     <section class="update_entry_section orange lighten-4 hidden"></section>
     </main>
+        </div>
+    </div>
     
     <script src="temp-data.js"></script>
     <script src="main.js"></script>
