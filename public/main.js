@@ -331,7 +331,7 @@ function main() {
         // Fills in the HTML of .status_section.
         $(`.status_section`).html(
         `<h3>Status Page of ${USER.userFullName}</h3>
-        <p>You currently have no entries listed. Click on the New Entry tab to create a new entry!</p>`
+        <p>You currently have no entries listed. Click on the Create Entry tab to create a new entry!</p>`
         );
     }
 
@@ -393,8 +393,7 @@ function main() {
                     <input type="text" name="entryUserPhoneNumber" placeholder="123-456-7890" id="input_entry_contact_phoneNumber" value="${USER.userPhoneNumber}" required>
                 </fieldset>
                 <label for="input_entry_foodAvailable">Food Available:</label>
-                <input type="text" name="entryFoodAvailable" placeholder="Several dozen bagels weekly.  Several gallons of milk weekly." id="input_entry_foodAvailable"
-                    required>
+                <input type="text" name="entryFoodAvailable" placeholder="Several dozen bagels weekly.  Several gallons of milk weekly." id="input_entry_foodAvailable">
                 <button type="submit" class="submit_new_entry_button waves-effect waves-light btn" title="Submit New Entry Button">Create Entry</button>
             </form>`
         );
@@ -645,7 +644,7 @@ function main() {
         let radius = (form_inputs["searchMileRadius"].value * 1.60934);   // Converting the miles from the user to kilometers for the API.
         let maxRows = "10";
         let query = `username=${username}&country=${country}&postalcode=${zipCode}&radius=${radius}&maxRows=${maxRows}`;
-        return fetch(`http://api.geonames.org/findNearbyPostalCodesJSON?${query}`)
+        return fetch(`https://api.geonames.org/findNearbyPostalCodesJSON?${query}`)
             .then(response => response.json())
             .then(data => {
             if (data[`postalCodes`]) {
