@@ -35,9 +35,7 @@ function main() {
                 loadStatusSection();
             });
         })
-        .catch(error => {
-            console.log(`initializePage. error = `, error.message);
-            localStorage.setItem(`harvest_united_status`, `Local session timed out.`);
+        .catch(() => {
             loadLoginPage();
         }); 
     }
@@ -59,7 +57,6 @@ function main() {
 
     function checkAuthorizedUser() {
         // Verifies the current jwt works, also refreshes the JWT for the user.
-        console.log(`ran checkAuthorizedUser`);
         const jwt = JWT_KEY;
 
         return fetch(`/auth/refresh`, {method : "POST", headers : {"Authorization" : `Bearer ${jwt}`}})
@@ -67,38 +64,37 @@ function main() {
         .then(res => {
             JWT_KEY = res.authToken;
         })
-        .catch(error => {
-            localStorage.setItem(`harvest_united_status`, `Local session timed out.`);
-            console.log(`checkAuthorizationUser. error = `, error.message);
+        .catch(() => {
+            // Could potentially use this response if we wish to notify the user of the timeout when booted. Is this implied?
+            //localStorage.setItem(`harvest_united_status`, `Local session timed out.`);
             loadLoginPage();
         }); 
     }
 
     function loadLoginPage() {
-        // Load the Login page HTML.
-        console.log("loadLoginPage runs");
+        // Load and move to the Login page HTML in the browser.
         window.location = "/index.html";
     }
 
     function getUserInfo() {
-        // User's already logged in.  Getting serialized information on the user to store locally.
-        console.log(`ran getUserInfo`);
+        // User's already logged in.  Getting serialized information on the user to store locally (USER).
         const jwt = JWT_KEY;
         const username = USERNAME;
         
         return fetch(`/users?username=${username}`, {method : "GET", headers : {"Authorization" : `Bearer ${jwt}`}})
         .then(response => response.json())
         .then(res => {
-            console.log(`getUserInfo. res = `, res);
             USER = res[0];
         })
         .catch(error => {
-            console.log(`getUserInfo. error = `, error.message);
+            notifyUser(`Unable to retrieve your user info. Logout and try again.`);
         });
     }
 
     function loadStatusSection() {
-        // This function can load the HTML by clicking the Status Tab (route from handleStatusTabClick) or from intial page load (initializePage).
+        // Gathers USER_ENTRIES, then displays them if they're present.
+        // This function can load the HTML by clicking the Status Tab (route from handleStatusTabClick) 
+        // or from intial page load (initializePage).
         getUserEntries()
         .then(() => {
             hideAllSections();
@@ -111,22 +107,16 @@ function main() {
             }
         })
         .catch((error) => {
-            console.log("error in loadStatusSection: ", error.message);
+            notifyUser(`Unable to find your entries.  Logout and try again.`);
         });
     }
 
     function getUserEntries() {
         // User's already logged in.  Getting serialized information on the entries of a specific entryUserId 
-        // (the current user's userId) to store locally. 
-        // Returns a Promise.
+        // (the current user's userId) to store locally.
         const user_entries_promise = new Promise((resolve, reject) => {
-            console.log(`getUserEntries. USER = `, USER);
-            console.log(`getUserEntries. USER.userId = `, USER.userId);
             $.get(`/entries?entryUsersId=${USER.userId}`, function(data, status) {
-                console.log("status: ", status);
                 if (status === `success`) {
-                    console.log(`getUserEntries. data = `, data);
-                    console.log(data);
                     USER_ENTRIES = data;
                     resolve();
                 } else {
@@ -153,12 +143,9 @@ function main() {
 
     function getEntryInfoFromEntryId(id) {
         // Get's the object with entryId "id" from USER_ENTRIES or SEARCH_ENTRIES, depending on which section user was in when accessing entry.
-        console.log(`getEntryInfoFromEntryId. CURRENT_ENTRY_SOURCE = `, CURRENT_ENTRY_SOURCE);
-        console.log(`getEntryInfoFromEntryId. entryId = `, id);
         if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
             USER_ENTRIES.forEach(entry => {
                 if (entry.entryId === id) {
-                    console.log(`getEntryInfoFromEntryId. entryId from USER_ENTRIES = `, id);
                     CURRENT_ENTRY = entry;
                 }
             });
@@ -166,7 +153,6 @@ function main() {
         if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
             SEARCH_ENTRIES.forEach(entry => {
                 if (entry.entryId === id) {
-                    console.log(`getEntryInfoFromEntryId. entryId from SEARCH_ENTRIES = `, id);
                     CURRENT_ENTRY = entry;
                 }
             });
@@ -222,15 +208,11 @@ function main() {
         // Verifies all text-based fields in the form_inputs object satisfy standards set in verifyInput. 
         // Returns true if all fields fulfill standards.
         let verified = true;
-        console.log(`verifyAcceptableUserInputs. form_inputs=`, form_inputs);
 
         $(`.notification_section`).addClass(`hidden`);
         Object.keys(form_inputs).forEach(function(input) {
-            console.log(input);
             const result = verifyInput(form_inputs[input]);
-            console.log(result);
             if (result !== "Accepted") {
-                console.log(`verifyAcceptableUserInputs. input = `, form_inputs[input]);
                 highlightTextbox(form_inputs[input].id);
                 notifyUser(result);
                 verified = false;
@@ -245,7 +227,6 @@ function main() {
         // Reads in input, uses input.name to determine what kind of tests the input must go through to be considered valid.
         let result = "Accepted";
         if (input.type === "text") {
-            console.log(input);
             if ((input.name === "searchMileRadius") && Number.isNaN(parseInt(input.value))) {
                 result = "The Mile Radius must be a number.";
             } else
@@ -257,9 +238,7 @@ function main() {
             }
         } else
         if (input.name === `entryAddress`) {
-            console.log(input);
             Object.keys(input.value).forEach(function(addressInput) {
-                console.log(input[`value`][addressInput]);
                 if ((addressInput === "entryZipcode") && Number.isNaN(parseInt(input[`value`][addressInput].value))) {
                     result = "The zipcode must be a number.";
                 }
@@ -270,19 +249,16 @@ function main() {
 
      function highlightTextbox(textbox) {
         // Adds CSS to the textbox input (through the highlighted class) to make it stand out to the user, making it clear which textbox needs to be changed.
-        console.log(`highlightTextbox. textbox= `, textbox);
         $(`#${textbox}`).addClass("highlighted");
      }
 
     function removeHighlightTextbox(textbox) {
         // Removes CSS to the textbox input (through the highlighted class).
-        console.log(`highlightTextbox. textbox= `, textbox);
         $(`#${textbox}`).removeClass("highlighted");
     }
 
      function notifyUser(message) {
          // Unhides the notification section and posts the message String.
-         console.log(`ran notifyUser.`);
          unhideSection(`notification_section`);
          $(`.notification_section`).html(`
          <p>${message}</p>
@@ -292,24 +268,15 @@ function main() {
     /**                 PAGE SPECIFIC FUNCTIONS                     **/
 
     function handleStatusTabClick() {
-        // When user clicks the Status Tab:
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page.  Stop.
-        // Hide, current section's HTML.
-        // For each entry in with the user's ID (Server -> GET entries associated with userId): 
-        // (Server -> GET entries serialized information: almost everything).
-        // !!!!!!!!!!! OPTIONAL Entries.sort().
-        // Fill USER_ENTRIES storage locally.
-        // Display Name, Role, Address, Contact Name, Description. Then a View Entry button and Update Entry button.
-        // Refill, unhide Status section's HTML.
+        // When user clicks the Status Tab: loads the Status Section.
+        // OPTIONAL improvement: Entries.sort().
         $(".status_tab").click(function(event) {
-            console.log("handleStatusTabClick runs");
             checkAuthorizedUser()
             .then(() => {
                 loadStatusSection();
             })
             .catch(error => {
-                console.log(error.message);
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             });
         });
     }
@@ -346,6 +313,7 @@ function main() {
     }
 
     function displayEmptyStatus() {
+        // Fills in the HTML of .status_section.
         $(`.status_section`).html(
         `<h3>Status Page of ${USER.userFullName}</h3>
         <p>You currently have no entries listed. Click on the New Entry tab to create a new entry!</p>`
@@ -353,14 +321,8 @@ function main() {
     }
 
     function handleCreateNewEntryTabClick() {
-        // When user clicks the Create Entry Tab:
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page. Stop.
-        // Hide, current section's HTML.
-        // Refill, unhide Create Entry section's HTML.
-        // OPTIONAL Autofill Contact Name, E-mail, Phone Number into form fields.
+        // When user clicks the Create Entry Tab, shows .create_new_entry_section.
         $(".create_new_entry_tab").click(function(event) {
-            console.log("handleCreateNewEntryTab runs");
             checkAuthorizedUser()
             .then(() => {
                 hideAllSections();
@@ -369,7 +331,7 @@ function main() {
                 displayCreateNewEntrySection();
             })
             .catch(error => {
-                console.log(error.message);
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             }); 
         });
     }
@@ -424,13 +386,8 @@ function main() {
     }
 
     function handleSearchEntryTabClick() {
-        // When user clicks the Search Entry Tab:
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page.  Stop.
-        // Hide, current section's HTML.
-        // Refill, unhide Search Entry section's HTML.
+        // When user clicks the Search Entry Tab, shows the search_entry_section.
         $(".search_entry_tab").click(function(event) {
-            console.log("handleSearchEntryTab runs");
             checkAuthorizedUser()
             .then(() => {
                 hideAllSections();
@@ -438,7 +395,7 @@ function main() {
                 displaySearchEntrySection();
             })
             .catch(error => {
-                console.log(error.message);
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             }); 
             
         });
@@ -469,33 +426,21 @@ function main() {
     }
 
     function handleLogoutTabClick() {
-        // When user clicks the Logout Tab:
-        // Show an alert asking "Are you sure?" or something like this.
-
-        // Load the Login page.
+        // When user clicks the Logout Tab, asks for confirmation of log out, loads login page if confirmed.
         $(".logout_tab").click(function(event) {
-            console.log("handleLogoutTabClick runs");
             if (confirm("Click OK to confirm log out.")) {
                 // Clicks OK.
-                localStorage.setItem(`harvest_united_status`, `User signed out.`);
+                // Could potentially use this response if we wish to notify the user of a successful logout. Is this implied?
+                // localStorage.setItem(`harvest_united_status`, `User signed out.`);
                 loadLoginPage();
             }
         });
-        
-        // If confirmed logging out (Server -> remove JWT authentication).
     }
 
     function handleViewEntryButtonClick() {
-        // When user clicks the View Entry button (within Status Page or Search Page):
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page.  Stop.
-        // Hide current section's HTML.
-        // obtain the entryId relevant to the entry clicked.
-        // Refill, unhide View Entry section's HTML.
-        // Display almost everything for the entry (from relevant entryId's info in USER_ENTRIES or SEARCH_ENTRIES, depending on if entryUsersId = userId).
-        // If userId matches the entries associated userID, also make the Update Entry button available.
+        // When user clicks the View Entry button (within Status Page or Search Page), obtain entryId from button.
+        // Gets relevant entry info from server and shows it in view_entry_section.
         $("main").on("click", ".view_entry_button", function(event) {
-            console.log("handleViewEntryButtonClick runs");
             checkAuthorizedUser()
             .then(() => {
                 getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in value.
@@ -504,15 +449,14 @@ function main() {
                 displayViewEntrySection();
             })
             .catch(error => {
-                console.log(error.message);
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             }); 
             
         });
     }
 
     function displayViewEntrySection() {
-        // Fills in the HTML of .view_entry_section.  Uses data from CURRENT_ENTRY. Only shows update button if entry's userId = id of logged in user.
-        console.log("Let's view the entry.")
+        // Fills in the HTML of .view_entry_section.  Uses data from CURRENT_ENTRY.
         if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
             $(`.view_entry_section`).html(
                 `<button class="back_button return_back_to_search_results waves-effect waves-light btn right" title="Back Button">Go Back</button>`
@@ -537,6 +481,7 @@ function main() {
             <p class="view_entry_foodAvailable"><b>Food Available:</b> ${CURRENT_ENTRY.entryFoodAvailable}</p>`
 
         );
+        //Only shows delete/update buttons if entry's userId = id of logged-in user.
         if (CURRENT_ENTRY.entryUsersId === USER.userId) {
             $(`.view_entry_section`).append(
                 `<button class="update_entry_button waves-effect waves-light btn" title="Update Entry Button" value="${CURRENT_ENTRY.entryId}">Update</button>
@@ -552,15 +497,10 @@ function main() {
     }
 
     function handleUpdateEntryButtonClick() {
-        // When user clicks on the Update Entry button on the Status, Search, or View Entry pages:
-        // obtain the entryId relevant to the entry clicked.
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page. Stop.
-        // Hide current section's HTML.
-        // Refill, unhide Update Entry section's HTML.
+        // When user clicks on the Update Entry button on the Status, Search, or View Entry pages, get the entryId from the button clicked.
+        // Shows the relevant entry in the update_entry_section.
         // Set the values in the respective fields to the entries previous information (from entryId's info in USER_ENTRIES).
         $("main").on("click", ".update_entry_button" ,function(event) {
-            console.log("handleUpdateEntryButtonClick runs");
             checkAuthorizedUser()
             .then(() => {
                 getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in value.
@@ -569,7 +509,7 @@ function main() {
                 displayUpdateEntrySection();
             })
             .catch(error => {
-                console.log(error.message);
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             }); 
         });
     }
@@ -643,21 +583,11 @@ function main() {
     }
 
     function hanldeSearchButtonClick() {
-        // When user clicks the Search button on the Search Page:
-
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page. Stop.
-        // Verify fields are properly filled (ex zipcode is a number, mile radius is a number)
-        // If fields not valid. Notify the user. Stop.
-        // Make a request to the GeoCoder API to gather all zipcodes within the user-specified mile-radius form the user-specified zipcode.
+        // When user clicks the Search button on the Search Page, validates fields, then Obtains a list of zipcodes close to
+        // the entered zipcode, stored locally. Gather ten closest zip codes from requested zip code.
         // A list of usable zipcodes is made from the results of the get request. Store locally.
-        // Empty SEARCH_ENTRIES.
-        // (Server -> GET all entries that have one of the zipcodes from the list).
-        // For each entry returned:
-        // Fill SEARCH_ENTRIES storage locally.
-        // Display Name, Role, Address, Contact Name, Description. Then a View Entry button and (when applicable) Update Entry button.
+        // For each zipcode returned: Gets entries from server and stores in SEARCH_ENTRIES. Shows the results.
         $(".search_entry_section").on("submit", "form", function(event) {
-            console.log("handleSearchButtonClick runs");
             event.preventDefault();
             checkAuthorizedUser()
             .then(() => {
@@ -673,28 +603,26 @@ function main() {
                             return accumulation;
                         }, []);
 
-                        console.log(`handleSearchButtonClick. entries= `,entries);    
                         CURRENT_ENTRY_SOURCE = `SEARCH_ENTRIES`;
                         SEARCH_ENTRIES = entries;
                         unhideSection(`search_results_section`);
                         displaySearchResultSection(entries);
                     })
                     .catch(() => {
-                        console.log("Invalid zipcode entered.");
+                        notifyUser(`Invalid zipcode entered. Please try again.`);
                     });
                 }
             })
             .catch(() => {
-                console.log("No search entries shown.");
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             });
         });
     }
 
     function getNearbyZipcodes(form_inputs) {
-        // Given a zipcode and mile radius provided by the user, makes a GET requet to Geonames API for closest zipcodes.
+        // Using the Geonames API, and a given zipcode and mile radius in form_inputs, gets 10 nearest zipcodes.
         // Returns a promise with an array of zipcodes.
         let zipCodes = [];
-        console.log(form_inputs);
 
         let username = "corunnery";                 // Account established through Cory!
         let country = "US";                         // We are assuming we're working in the United States for now.
@@ -710,7 +638,6 @@ function main() {
                     zipCodes.push(area.postalCode);
                 });
             }
-            console.log(`getNearbyZipcodes zipCodes.`, zipCodes);
             return zipCodes;
         })
         .catch(error => {
@@ -722,44 +649,33 @@ function main() {
     function getSearchEntries(zipCodes, form_inputs) {
         // Given an array of zipcodes and a string role, this makes a GET request for all entries in database with zipcode and role.
         // Getting serialized information on the entries of a specific zipcode to store in SEARCH_ENTRIES.
-        // GET request!!
-
         const role = form_inputs["entryRole"].value;
         if (zipCodes.length === 0) {
-            console.log(`getSearchEntries. zipCodes.length = 0.`);
-            console.log(`getSearchEntries .FORM_INPUTS=` , form_inputs);
             notifyUser(`${form_inputs["searchZipcode"].value} is not a valid zipcode!`);
             return Promise.reject();
         } else {
-            console.log(`getSearchEntries. zipCodes=`, zipCodes);
             const concurrentPromises = zipCodes.map(zipcode => {
                 return getEntriesByZipcode(zipcode, role);
             });
             
             return Promise.all(concurrentPromises)
             .then(res => {
-                console.log(`getSearchEntries successful.`);
                 return res;
             })
             .catch((error) => {
-                console.log(`getSearchEntries error: `, error.message);
                 return error.message;
             });
         }
     }
 
     function getEntriesByZipcode(zipcode, role) {
-        console.log(`ran getEntriesByZipcode`);
-        // Given a zipcode and role, makes a request to the server and pushes those entries into SEARCH_ENTRIES.
-
+        // Given a zipcode and role, makes a GET request to the server for entries.
         return fetch(`/entries?entryZipcode=${zipcode}&entryRole=${role}`, {method : "GET"})
         .then(response => response.json())
         .then(res => {
-            console.log(`arrived at end of getEntryiesByZipcode successfully. res = `, res);
             return res;
         })
         .catch(error => {
-            console.log(`getEntriesByZipcode error`, error.message);
             return error.message;
         });
     }
@@ -802,18 +718,10 @@ function main() {
     }
 
     function handleSubmitNewEntryButtonClick() {
-        // When user clicks the Submit New Entry button on the Create New Entry page.
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
-        // Verify fields are filled properly (ex zipcode is number, email has @, OPTIONAL phone number verified).
-        // If fields not valid, notify the user. Stop.
-        // (Server => POST this entry into Entries).
-        // Add to USER_ENTRIES locally. Add entryId to USER's entries.
-        // Hide current section's HTML.
-        // Refill, unhide View Entry section's HTML (with relevant entryId's info).
-        // Display almost everything for the entry.
+        // When user clicks the Submit New Entry button on the Create New Entry page, validates inputs, then posts
+        // the entry into the database. Also updates the user's entries locally.
+        // Add to USER_ENTRIES locally. Add entryId to USER's entries.  Shows user the entry.
         $(".create_new_entry_section").on("submit", "form", function(event) {
-            console.log("handleSubmitNewEntryButtonClick runs");
             event.preventDefault();
             checkAuthorizedUser()
             .then(() => {
@@ -827,7 +735,7 @@ function main() {
                     .then(entryInfo => {
                         // Note, entryInfo now also has entryId.
                         CURRENT_ENTRY = entryInfo;
-                        addEntryToUserEntries(entryInfo);   // !!!!!! We end up making a GET request of all the entries from server put into USER_ENTRIES anyway. Remove? 
+                        addEntryToUserEntries(entryInfo); 
                         hideAllSections();
                         unhideSection(`view_entry_section`);
                         CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
@@ -835,12 +743,12 @@ function main() {
                         M.toast({html: 'Entry created!'});
                     })
                     .catch(error => {
-                        console.log(error.message);
+                        notifyUser(`Cannot submit a new entry at this time. Please check in later.`);
                     });
                 }
             })
-            .catch(error => {
-                console.log(error.message);
+            .catch(() => {
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             }); 
         });
     }
@@ -863,7 +771,6 @@ function main() {
                 information[key] = form_inputs[key][`value`];
             }
         });
-        console.log(`packageInputsIntoObject finished. information = `, information);
         return information;
     }
 
@@ -877,8 +784,6 @@ function main() {
 
     function postEntryToDatabase(entryInfo) {
         // Post entry (entryInfo) into the server database.
-        console.log(entryInfo);
-
         return fetch(`/entries`, {method: "POST", body: JSON.stringify(entryInfo), headers : {"content-type": "application/json"}})
         .then(response => response.json())
         .catch(error => {
@@ -900,18 +805,9 @@ function main() {
     }
 
     function handleSubmitUpdatedEntryButtonClick() {
-        // When user clicks the Submit Updated Entry button on the Update Entry page:
-        // (Server -> Make sure still authenticated).
-        // If not authenticated, load the Login Page.  Notify user the session timed out. Stop.
-        // Verify fields are filled properly (ex zipcode is number).
-        // If fields not valid, notify the user. Stop.
-        // (Server => PUT the updated information into this entry in Entries).
-        // Add to USER_ENTRIES locally.
-        // Hide current section's HTML.
-        // Refill, unhide View Entry section's HTML (with relevant entryId's info).
-        // Display almost everything for the entry.
+        // When user clicks the Submit Updated Entry button on the Update Entry page, validates fields, then updates the information
+        // in the server. Makes the edits to the locally stored entry as well. Shows the updated entry.
         $(".update_entry_section").on("submit", "#update_entry_form", function(event) {
-            console.log("handleSubmitUpdatedEntryButtonClick runs");
             event.preventDefault();
             checkAuthorizedUser()
             .then(() => {
@@ -923,7 +819,6 @@ function main() {
                     
                     updateEntryToDatabase(updatedEntry)
                     .then((res) => {
-                        console.log(`handleSubmitUpdatedEntry after putPromise. res= `, res);
                         CURRENT_ENTRY = updatedEntry;
                         updateEntryInUserEntries(updatedEntry);
                         hideAllSections();
@@ -932,12 +827,12 @@ function main() {
                         M.toast({html: 'Entry updated!'});
                     })
                     .catch(error => {
-                        console.log(error.message);
+                        notifyUser(`Unable to update the entry. Please refresh and try again.`);
                     });
                 }
             })
             .catch(error => {
-                console.log(error.message);
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             }); 
             
         });
@@ -961,15 +856,13 @@ function main() {
     }
 
     function updateEntryToDatabase(entryInfo) {
-        // PUT (ie update) entry in the server database.
-        console.log(`updateEntryToDatabase entryInfo.entryId= `, entryInfo.entryId);
+        // Updates the entry in the server database.
         return fetch(`/entries/${entryInfo.entryId}`, {method : "PUT", body : JSON.stringify(entryInfo), headers : {"content-type" : "application/json"}})
         .then(response => response.json())
         .then(res => {
             return res;
         })
         .catch(error => {
-            console.log(`postEntryToDatabase error: `, error.message);
             return error.message;
         });
     }
@@ -977,11 +870,7 @@ function main() {
     function updateEntryInUserEntries(updatedEntry) {
         // Find entryId from USER_ENTRIES and refill information.
         // Doesn't replace fields one by one; simply replaces the entire entry.  Could alter if needed.
-        console.log(`ran updateEntryLocally`);
-
         let userEntryIndex = USER_ENTRIES.find((entry, index) => {
-            console.log(index);
-            console.log(entry);
             if (updatedEntry.entryId === entry.entryId) {
                 return index;
             }
@@ -992,7 +881,6 @@ function main() {
     function handleDeleteButtonClick() {
         // When the delete button is clicked while the user views it, removes the entry from the database and USER_ENTRIES.
         $("main").on("click", ".delete_entry_button", function(event) {
-            console.log("handleDeleteButtonClick runs");
             checkAuthorizedUser()
             .then(() => {
                 if (confirm(`Are you sure you want to delete this entry?`)) {
@@ -1006,12 +894,12 @@ function main() {
                         M.toast({html: 'Entry deleted.'});
                     })
                     .catch(error => {
-                        console.log(error.message);
+                        notifyUser(`Unable to find the entry. Refresh and try again.`);
                     });
                 }
             })
             .catch(error => {
-                console.log(error.message);
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             }); 
         });
     }
@@ -1027,24 +915,17 @@ function main() {
 
     function deleteEntryInUserEntries(deletingEntryId) {
         // Removes the entry from USER_ENTRIES using the id specified.
-        console.log(`ran deleteEntryInUserEntries`);
-
-        console.log(USER_ENTRIES);
         let userEntryIndex = USER_ENTRIES.find((entry, index) => {
-            console.log(index);
-            console.log(entry);
             if (deletingEntryId === entry.entryId) {
                 return index;
             }
         });
         USER_ENTRIES.splice(userEntryIndex, 1);
-        console.log(USER_ENTRIES);
     }
 
     function handleBackButtonClick() {
+        // When user clicks the back button on the View Entry or Update Entry sections, sends user back to previous section.
         $(`.view_entry_section`).on(`click`, `.back_button`, function() {
-            console.log(`ran handleBackButtonClick`);
-            console.log(`handleBackButtonClick. CURRENT_ENTRY_SOURCE`, CURRENT_ENTRY_SOURCE);
             checkAuthorizedUser()
             .then(() => {
                 if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
@@ -1061,7 +942,7 @@ function main() {
                 }
             })
             .catch(error => {
-                console.log(error.message);
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
             });
         });
     }

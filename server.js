@@ -12,10 +12,9 @@ const passport = require(`passport`);
 const entryRouter = require(`./entryRouter`);
 const userRouter = require(`./userRouter`);
 const { router: authRouter, localStrategy, jwtStrategy } = require('./auth');
-const {DATABASE_URL, PORT, TEST_DATABASE_URL} = require(`./config.js`);
+const {DATABASE_URL, PORT} = require(`./config.js`);
 
 // Setup Dependencies
-
 const app = express();
 
 mongoose.Promise = global.Promise;
@@ -35,14 +34,12 @@ app.use(function (req, res, next) {
     next();
 });
 
-
 //Passport Strategies
 passport.use(localStrategy);
 passport.use(jwtStrategy);
 
 
 // Routing
-
 app.use('/auth', authRouter);
 app.use(`/users`, userRouter);
 app.use(`/entries`, entryRouter);
@@ -57,14 +54,13 @@ app.get('/validate', jwtAuth, (req, res) => {
 });
 
 // Open/Close Server
-
 let server;
 
 function runServer(database_url, port=PORT) {  //database and port connection through config.js
     return new Promise((resolve, reject) => {
         mongoose.connect(database_url, function(error) {
             if (error) {
-                console.log(`mongoose failed to connect`);
+                console.log(`Mongoose failed to connect.`);
                 return(reject(error));
             }
             server = app.listen(port, () => {
@@ -73,7 +69,7 @@ function runServer(database_url, port=PORT) {  //database and port connection th
             })
             .on('error', err => {
                 mongoose.disconnect();
-                console.log("error in runServer, failed to listen at server.");
+                console.log("Error in runServer, failed to listen at server.");
                 reject(err);
             });
         });
@@ -96,9 +92,10 @@ function closeServer() {
 }
 
 if (require.main === module) {
-    runServer(DATABASE_URL).catch(err => console.error(err));
+    runServer(DATABASE_URL).catch(function(err) {
+        console.error(err);
+    });
 };
 
 // Export App
-
 module.exports = {app, runServer, closeServer};

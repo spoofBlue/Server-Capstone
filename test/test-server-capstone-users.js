@@ -5,64 +5,57 @@ const chai = require(`chai`);
 const chaiHttp = require(`chai-http`);
 const mongoose = require(`mongoose`);
 const faker = require(`faker`);
+const jwt = require('jsonwebtoken');
 
 const {app, runServer, closeServer} = require(`../server`);
 const {Users} = require(`../userModel`);
-const {TEST_DATABASE_URL} = require(`../config`);
+const {JWT_SECRET, TEST_DATABASE_URL} = require(`../config`);
 
 chai.use(chaiHttp);
 const expect = chai.expect;
 
+let JWT_KEY;
 
 function seedUserData() {
-    console.info('Seeding user data');
+    console.info('Seeding user data.');
     const seedUserData = [];
+    const userList = [];
 
     for (let i=0; i<2; i++) {
         const promise = new Promise(function(resolve, reject) {
-            console.log("execute seedUserData() promise in loop: ", i);
             const unhashed = "hellohello";
         
             return Users.hashPassword(unhashed)
             .then(function(password) {
-                const user = generateUser(password);
-                console.log("user: ", user);
-                return Users.create(user);      // This step does not run!!!!
+            return userList.push(generateUser(password));
             })
-            .then(function(res) {
-                console.log("seedUserData() res after Users.create : ", res.message);
+            .then(function() {
                 resolve();
             })
             .catch(function(error) {
-                console.log(error.message);
-                reject(error.message);
+                reject(error);
             });
         });
         seedUserData.push(promise);
-        console.log("finish seedUserData() promise: ", i);
     }
 
     return Promise.all(seedUserData)
-    .then(function(seedData, reject) {
-        console.log("creating seedData: ", seedData);
-        // if seedData is empty, could reject it to the catch.
-        return seedData;
+    .then(function() {
+        return Users.insertMany(userList);
     })
     .catch(function(error) {
-        console.log("error in seedUserData: ", error.message);
-        return error.message;
+        return error;
     })
 }
 
 function generateUser(password) {
     const sampleUser = {
         username : generateFakerName() ,
+        userPassword : password ,
         userFullName : generateString() ,
         userEmail : generateString() ,
         userPhoneNumber : generateString() ,
-        userEntryIds : [generateString(), generateString(), generateString(), generateString()] ,
-        userDescription : generateString() ,
-        userPassword : password
+        userDescription : generateString() 
     }
     return sampleUser;
 }
@@ -76,58 +69,42 @@ function generateFakerName() {
     return faker.name.findName();
 }
 
-function generatePassword() {
-    const strings = ["WordsOfInfo", "TextOrName", "StreetOrInfo", "ThingsInAString", "LettersGenerated"];
-    const unhash = strings[Math.floor(Math.random() * strings.length)];
-    return Users.hashPasswordSync(unhash);
-}
-
 function tearSeedDb() {
-    console.warn(`Dropping database`);
+    console.warn(`Dropping database.`);
     return mongoose.connection.dropDatabase();
 }
 
-function getAuthenticationJWT() {
-    console.log(`getAuthenitcationJWT running.`);
-    let currentUserPassword;
-    let currentUsername;
-    return Users.findOne()
-    .then(function(user) {
-        console.log(user);
-        currentUsername = user.username;
-        currentUserPassword = "hellohello";
-        console.log(`before`);
-        console.log(currentUsername);
-        console.log(currentUserPassword);
-        return chai.request(app)
-        .post(`/auth/login`)
-        .send({
-            username : currentUsername ,
-            password : "hellohello"
-        })
-        .then(function(successfulLogin) {
-            console.log(`success`);
-            console.log("successfulLogin", successfulLogin.body);
-            return successfulLogin;
-        })
-        .catch(function(error) {
-            console.log("Error in getAuthenticationJWT: login catch: ", error.message);
-            return error.message;
-        });
+function getAuthenticationJWT(username, password) {
+    // Pass in credenitials seeded into the database. Retrieves a JWT token and returns it.
+    return chai.request(app)
+    .post('/auth/login')
+    .send({ username : username, password : password})
+    .then(res => {
+        JWT_KEY = res.body.authToken;
     })
     .catch(function(error) {
-        console.log("Error in getAuthenticationJWT: Users.findOne catch: ", error.message);
-        return error.message;
+        return error;
     });
 }
 
-
 describe(`User Integration Testing`, function() {
+    const password = "hellohello";
+    
     before(function() {
         return runServer(TEST_DATABASE_URL);
     });
     beforeEach(function() {
-        return seedUserData();
+        return seedUserData()
+        .then(function() {
+            return Users.findOne();
+        })
+        .then(function(user) {
+            username = user.username;
+            return getAuthenticationJWT(username, password);
+        })
+        .catch(function(error) {
+            throw error;
+        });
     });
     afterEach(function() {
         return tearSeedDb();
@@ -135,47 +112,37 @@ describe(`User Integration Testing`, function() {
     after(function() {
         return closeServer();
     });
-    
-    
 
     describe(`User GET requests`, function() {
         it('should return all existing users', function() {
-            console.log(`just starting get request`);
-            
             let res;
-            getAuthenticationJWT()
-            .then(function(res) {
-                console.log("Promise/GET test after getAuthenticatioJWT running.");
-                console.log(res.body);
-                console.log(res.text);
-                return chai.request(app)
-                .get('/users')
-                .then(function(_res) {
-                    res = _res;
-                    expect(res).to.have.status(200);
-                    expect(res).to.be.json;
-                    expect(res.body).to.be.an(`array`);
-                    expect(res.body).to.have.lengthOf.at.least(1);
-                    return Users.countDocuments();
-                })
-                .then(function(count) {
-                    expect(res.body).to.have.lengthOf(count);
-                })
+            return chai.request(app)
+            .get('/users')
+            .set('Authorization', `Bearer ${JWT_KEY}`)
+            .then(function(_res) {
+                res = _res;
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res.body).to.be.an(`array`);
+                expect(res.body).to.have.lengthOf.at.least(1);
+                return Users.countDocuments();
+            })
+            .then(function(count) {
+                expect(res.body).to.have.lengthOf(count);
             })
             .catch(function(err) {
-                console.log("error in GET request main: ", err.message);
+                throw err;
             });
         });
-    });  // Remove this closing bracket once you include the rest of the testing.
-
-    /*
 
         it(`should show a user has all the correct Keys in it`, function() {
             let resUser;
-            const userKeys = [`userId`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userEntryIds`,`userDescription`];
+            const userKeys = [`userId`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userDescription`];
             return chai.request(app)
                 .get(`/users`)
+                .set('Authorization', `Bearer ${JWT_KEY}`)
                 .then(function(_res) {
+                    console.log(_res.body);
                     resUser = _res.body[0];
 
                     expect(resUser).to.have.keys(userKeys);
@@ -183,47 +150,50 @@ describe(`User Integration Testing`, function() {
                 })
                 .then(function(chosenUser) {
                     userKeys.forEach(function(key) {
-                        if (key !== "userId" && key !== "userEntryIds") {
+                        if (key !== "userId") {
                             expect(resUser[key]).to.equal(chosenUser[key]);
                         }
                     });
                     expect(chosenUser).to.have.property(`userPassword`);
+                })
+                .catch(function(error) {
+                    throw error;
                 });
         });
 
         it(`should return the user through the GET request specifying a particular id `, function() {
-            const userKeys = [`userId`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userEntryIds`,`userDescription`];
+            const userKeys = [`userId`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userDescription`];
 
-            let sampleUser;
+            let resUser;
             return Users.findOne()
             .then(function(user) {
-                sampleUser = user;
-                return sampleUser;
-            })
-            .then(function() {
                 return chai.request(app)
-                .get(`/users/${sampleUser._id}`)
+                .get(`/users/${user._id}`)
+                .set('Authorization', `Bearer ${JWT_KEY}`)
                 .then(function(_res) {
-                    const resUser = _res.body;
+                    resUser = _res.body;
                     userKeys.forEach(function(key) {
-                        if (key !== "userId" && key !== "userEntryIds") {
-                            expect(resUser[key]).to.equal(sampleUser[key]);
+                        if (key !== "userId") {
+                            expect(resUser[key]).to.equal(user[key]);
                         }
                     });
                     return Users.findById(resUser.userId);
                 })
                 .then(function(chosenUser) {
-                    //expect(chosenUser._id).to.equal(sampleUser._id);
+                    expect(chosenUser._id.toString()).to.equal(resUser.userId);
                 });
             })
+            .catch(function(error) {
+                throw error;
+            });
         });
-    //});
+    });
 
     describe(`User POST requests`, function() {
         // Note: I've since removed the response of user.serialize() from successful posting.
         it(`should post a new user into the database with all required keys (with correct values).`, function() {
             let newUser;
-            const userKeys = [`userId`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userEntryIds`,`userDescription`];
+            const userKeys = [`userId`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userDescription`];
             
             let resUser;
             // Promise.resolve.  It looks like good logic. But is it good/neutral practice 
@@ -233,6 +203,7 @@ describe(`User Integration Testing`, function() {
                     newUser = newU;
                     return chai.request(app)
                 .post(`/users`)
+                .set('Authorization', `Bearer ${JWT_KEY}`)
                 .send(newUser)
                 .then(function(_res) {
                     resUser = _res;
@@ -249,18 +220,17 @@ describe(`User Integration Testing`, function() {
                         //if (key === "userId") {
                         //    expect(resUser["userId"]).to.equal(chosenUser["_id"]); // !!!! Remove this.
                         //} else 
-                        if (key !== "userEntryIds" && key !== "userId") {
+                        if (key !== "userId") {
                             expect(resUser[key]).to.equal(dbUser[key]); // !!!! Remove this.
                         }
                     });
                 })
-                .catch(function(shouldNeverReachHere) {
-                    console.log("program should never bring you here.");
-                    expect(shouldNeverReachHere).to.be.null;
+                .catch(function(error) {
+                    throw error;
                 });
             })
-            .catch(err => {
-                console.log(err);
+            .catch(function(error) {
+                throw error;
             });
         });
 
@@ -272,12 +242,13 @@ describe(`User Integration Testing`, function() {
             
             return chai.request(app)
             .post(`/users`)
+            .set('Authorization', `Bearer ${JWT_KEY}`, "content-type", "application/json")
             .send(badUser)
             .then(function(_res) {
-                expect(_res).to.have.status(400);
+                expect(_res).to.have.status(422);
             })
             .catch(function(error) {
-                expect(error).to.have.status(400);
+                throw error;
             });
         });
     });
@@ -289,11 +260,10 @@ describe(`User Integration Testing`, function() {
                 username : "asdfasdf" ,
                 userFullName : "Hill Smith" ,
                 userEmail : "newEmail@d.com" ,
-                userEntryIds : ["4444", "5555", "6666"] ,
                 userDescription : "Hello, I have diner take all my food!"
             };
             // Note updating all the fields except userPassword and userPhoneNumber
-            const userKeys = [`userPassword`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userEntryIds`,`userDescription`];
+            const userKeys = [`userPassword`,`username`,`userFullName`,`userEmail`,`userPhoneNumber`,`userDescription`];
 
             let chosenUser;
             return Users.findOne()
@@ -302,6 +272,7 @@ describe(`User Integration Testing`, function() {
                 updateInfo["userId"] = chosenUser._id;
                 return chai.request(app)
                 .put(`/users/${chosenUser._id}`)
+                .set('Authorization', `Bearer ${JWT_KEY}`, "content-type", "application/json")
                 .send(updateInfo)
                 .then(function(_res) {
                     expect(_res).to.have.status(204);
@@ -309,20 +280,17 @@ describe(`User Integration Testing`, function() {
                 })
                 .then(function(dbUser) {
                     userKeys.forEach(function(key) {
-                        if (key === "userEntryIds" && updateInfo["userEntryIds"]) {
-                            for (let i=0; i < updateInfo["userEntryIds"]; i++) {
-                                expect(dbUser["userEntryIds"][i]).to.equal(updateInfo["userEntryIds"][i]);
-                            }
-                        } else
                         if (updateInfo[key]) {
                             expect(dbUser[key]).to.equal(updateInfo[key]);
                         }
                     });
                 })
-                .catch(function(shouldNeverReachHere) {
-                    console.log("program should never bring you here.");
-                    expect(shouldNeverReachHere).to.be.null;
+                .catch(function(error) {
+                    throw error;
                 });
+            })
+            .catch(function(error) {
+                throw error;
             });
         });
 
@@ -332,7 +300,6 @@ describe(`User Integration Testing`, function() {
                 username : "asdfasdf" ,
                 userFullName : "Hill Smith" ,
                 userEmail : "newEmail@d.com" ,
-                userEntryIds : ["4444", "5555", "6666"] ,
                 userDescription : "Hello, I have diner take all my food!"
             };
 
@@ -343,6 +310,7 @@ describe(`User Integration Testing`, function() {
                 updateInfo["userId"] = badId;
                 return chai.request(app)
                 .put(`/users/${chosenUser._id}`)
+                .set('Authorization', `Bearer ${JWT_KEY}`, "content-type", "application/json")
                 .send(updateInfo)
                 .then(function(_res) {
                     expect(_res).to.have.status(400);
@@ -351,6 +319,9 @@ describe(`User Integration Testing`, function() {
                 .catch(function(error) {
                     expect(error.name).to.equal(`AssertionError`);
                 });
+            })
+            .catch(function(error) {
+                throw error;
             });
         });
     });
@@ -363,31 +334,26 @@ describe(`User Integration Testing`, function() {
 
             getAuthenticationJWT()
             .then(function(res) {
-                console.log("look at me");
-                console.log(res.body);
-                console.log(res.text);
                 return Users.findOne();
             })
             .then(function(user) {
                 chosenUser = user;
                 return chai.request(app)
                 .delete(`/users/${chosenUser._id}`)
+                .set('Authorization', `Bearer ${JWT_KEY}`)
                 .then(function(_res) {
                     expect(_res).to.have.status(204);
                     return Users.findById(chosenUser._id);
                 })
                 .then(function(result) {
-                    console.log(`result = ${result}`);
                     expect(result).to.be.null;
                 })
-                .catch(function(shouldNeverReachHere) {
-                    console.log("program should never bring you here.");
-                    expect(shouldNeverReachHere).to.be.null;
+                .catch(function(err) {
+                    throw err;
                 });
             })
             .catch(function(err) {
-                console.log("Failed to authorize the testing program.");
-                expect(err).to.be.null;
+                throw err;
             });
         });
 
@@ -400,20 +366,22 @@ describe(`User Integration Testing`, function() {
                 chosenUser = user;
                 return chai.request(app)
                 .delete(`/users/${badId}`)
+                .set('Authorization', `Bearer ${JWT_KEY}`)
                 .then(function(_res) {
                     expect(_res).to.have.status(400);
-                    return Users.countDocuments();
+                    return Users.findOne(chosenUser)
                 })
-                .then(function(count) {
-                    console.log(`arrived in then`);
-                    expect(count).to.equal(10);
+                .then(function(result) {
+                    expect(result).to.be.an(`object`);
+                    expect(result).to.be.not.empty;
                 })
                 .catch(function(expectedError) {
-                    console.log(`arrived in error`);
                     expect(expectedError).to.have.status(400);
                 });
+            })
+            .catch(function(error) {
+                throw error;
             });
         });
-        */
-    //});   Include this closing bracket once you incoprorate rest of test again.
+    });
 });

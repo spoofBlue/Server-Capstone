@@ -1,5 +1,4 @@
 
-
 const mongoose = require(`mongoose`);
 
 const EntrySchema = mongoose.Schema({
@@ -12,11 +11,11 @@ const EntrySchema = mongoose.Schema({
     "entryRole" : {type : String , required : true} ,
     "entryAddress" : {
         // Check to make this object required.
-        entryStreetAddress : String ,
-        entryCity : String ,
-        entryState : String ,
-        entryCountry : String ,
-        entryZipcode : String ,
+        entryStreetAddress : {type : String , required : true} ,
+        entryCity : {type : String , required : true} ,
+        entryState : {type : String , required : true} ,
+        entryCountry : {type : String , required : true} ,
+        entryZipcode : {type : String , required : true} 
     } ,
     "entryDescription" : {type : String , required : true} ,
     "entryFoodAvailable" : {type : String , required : true} ,
@@ -33,7 +32,7 @@ EntrySchema.methods.serialize = function() {
         entryUserPhoneNumber : this.entryUserPhoneNumber ,
         entryUsersId : this.entryUsersId ,
         entryRole : this.entryRole ,
-        entryAddress : {                               // Perhaps I can simply use this.entryAddress . Specificity not shown necessary yet.
+        entryAddress : {                               // Perhaps I can simply use this.entryAddress. Maintaining specificity, just in case.
             entryStreetAddress : this[`entryAddress`].entryStreetAddress ,
             entryCity : this[`entryAddress`].entryCity ,
             entryState : this[`entryAddress`].entryState ,

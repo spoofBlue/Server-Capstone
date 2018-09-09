@@ -9,7 +9,6 @@ const UserSchema = mongoose.Schema({
     "userFullName" : {type : String , required : true} ,
     "userEmail" : {type : String , required : true} ,
     "userPhoneNumber" : {type : String , required : true} ,
-    "userEntryIds" : {type : Object} ,
     "userDescription" : {type : String , required : true} 
 });
 
@@ -20,13 +19,11 @@ UserSchema.methods.serialize = function() {
         userFullName : this.userFullName ,
         userEmail : this.userEmail ,
         userPhoneNumber : this.userPhoneNumber ,
-        userEntryIds : this.userEntryIds ,
         userDescription : this.userDescription 
     }
 }
 
 UserSchema.methods.validatePassword = function(password) {
-    console.log(`run validate password`);
     return bcrypt.compare(password, this.userPassword);
 };
 
@@ -34,7 +31,7 @@ UserSchema.statics.hashPassword = function(password) {
     return bcrypt.hash(password, 10);
 };
 
-//Syncronous version
+//Syncronous version if needed.
 UserSchema.statics.hashPasswordSync = function(password) {
     return bcrypt.hashSync(password, 10);
 };
