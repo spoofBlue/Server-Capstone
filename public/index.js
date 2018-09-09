@@ -175,6 +175,7 @@ function main() {
 
             const authorizePromise = authorizeUser(username, password);
 
+            $(`.notification_section`).empty();
             authorizePromise
             .then(response => {
                 localStorage.setItem(`harvest_united_jwt`, response.authToken);
