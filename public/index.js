@@ -1,19 +1,20 @@
 
-console.log("Hello index.js");
-
 function main() {
 
     function intializePage() {
-        handleCreateNewAccountButtonClick();
+        handleClickCollapsible();
+        handleTextboxClick();
         handleSubmitNewAccountButtonClick();
-        handleBackButtonClick();
         handleLoginButton();
+
+        $(document).ready(function(){
+            $('.collapsible').collapsible();
+        });
     }
 
-    function hideAllSections() {
+    function hideSection(section) {
         // Adds the `hidden` CSS class (which has display:none) from all sections, making them invisible in the HTML.
-        const sections = [`login_section`, `notification_section`, `create_new_account_section`];
-        sections.forEach(section => $(`.${section}`).addClass(`hidden`));
+        $(`.${section}`).addClass(`hidden`);
     }
 
     function unhideSection(section) {
@@ -21,68 +22,62 @@ function main() {
         $(`.${section}`).removeClass(`hidden`);
     }
 
-    function handleCreateNewAccountButtonClick() {
-        // When user clicks the Create New Account button: 
-        // Load the Create New Account Page.
-        $(`.login_section`).on(`click`,`.create_new_account_button`, function(event) {
-            console.log("ran handleCreateNewAccountButton");
+    function handleClickCollapsible() {
+        // When user clicks a collapsible list, checks whether the user activated the collapsible.  Ultimately
+        // changes the height of the background image to cover the entire page.
+        // Also hides the notification section, if it's present.
+        $(`li`).on(`click`,`.collapsible-header`, function(event) {
             event.preventDefault();
-            hideAllSections();
-            unhideSection(`create_new_account_section`);
+
+            $(`.notification_section`).empty();
+            hideSection(`notification_section`);
+            if ($(this).parent().get(0).className.indexOf(`active`) === -1) {
+                setFrontPageImageHeight("auto");
+            } else {
+                setFrontPageImageHeight("100%");
+            }
+        });
+    }
+
+    function setFrontPageImageHeight(setting) {
+        $(`#front-image-container`).css("height", setting);
+    }
+
+    function handleTextboxClick() {
+        $(`.create_new_account_section`).on(`click`, `input[type="text"]`, function() {
+            removeHighlightTextbox(this.id);
         });
     }
     
-    
     function handleSubmitNewAccountButtonClick() {
         // When user clicks the submit button on the Create New Account page:
-        // Verify username has not been used before, and password is greater than 8 characters.
-        // If fields are not valid, notify the user.
-        // (Server -> POST a new user).
-        // Load Status page HTML (with userId). No entries will be on the account.
+        // Gathers inputs, verifies username has not been used before/ password is greater than 8 characters,
+        // then can post a new user into the user database.
         $(`.create_new_account_section`).on(`submit`,`form`, function(event) {
-            console.log(`ran handleSubmitNewAccountButtonClick`);
             event.preventDefault();
             const form_inputs = gatherUserInputs(`create_new_account_section`);
             let userInfo = packageInputsIntoObject(form_inputs);
-            console.log(`handleSubmitNewAccount. userInfo = `, userInfo);
-            const postPromise = postUserToDatabase(userInfo);
+            $(`.notification_section`).empty();
+            hideSection(`notification_section`);
+            if (verifyAcceptableUserInputs(form_inputs)) {
+                const postPromise = postUserToDatabase(userInfo);
 
-            postPromise
-            .then(response => {
-                console.log(`handleSubmitNewAccountButtonClick. response = `, response);
-                
-                $(`.notification_section`).empty();
-                if (response.status === 422) {
-                    console.log(`no post, because we caught an invalid response from user.`);
-                    response.body.forEach(error => {
-                        form_inputs.forEach(input => {
-                            if (error.field === input.name) {
-                                highlightTextbox(form_inputs[input].id);
-                            } else {
-                                removeHighlightTextbox(form_inputs[input].id);
-                            }
-                        });
-                        notifyUser(error.message);
-                    });
-                    unhideSection(`notification_section`);
-                } else {
-                //if (response.toString === [object Object]) {
-                    console.log(`we made a post to the database!`);
-                    hideAllSections();
-                    notifyUser(`Account Creation Successful!`);
-                    unhideSection(`login_section`);
-                    unhideSection(`notificatoin_section`);
-                }     
-            })
-            .catch(error => {
-                console.log(`handleSubmitNewAccountButtonClick. error.response =`, error.response);
-            });
+                postPromise
+                .then(response => {
+                    M.toast({html: 'User Account Created!'});
+                    window.location = "/index.html";   
+                })
+                .catch(error => {
+                    notifyUser(`Unable to create the user. Please use a unique username.`);
+                    highlightTextbox(`input_username`);
+                });
+            }
         });
     }
 
     function gatherUserInputs(section) {
-        // Given a section, parses through all the inputs in the section (likely in a form), and stores any details about the input into object
-        // form_inputs.  
+        // Given a section, parses through all the inputs in the section (likely in a form), and stores any details about 
+        // the input into object form_inputs.
         let form_inputs = {};
         $(`.${section} input`).each(function() {
             let input = $(this);
@@ -93,19 +88,17 @@ function main() {
                 name : input.attr("name")
             }
         });
-        console.log(`gatherUserInput. form_inputs = `, form_inputs)
         return form_inputs;
     }
 
     function packageInputsIntoObject(form_inputs) {
-        // Using form_inputs {id: x, name: y, type: z, value: n} to create the object to send.
-        // The reason gatherUserInputs wasn't made to just display name : value (removing the necessity of this function packageInputs) 
-        // was versatility;  form_inputs is used for it's id/type in highlighting fields.
+        // Using form_inputs {id: x, name: y, type: z, value: v} to an object with name:value (y:v) pairs.
+        // In-depth side note: The reason gatherUserInputs wasn't made to just display name : value (removing the necessity of this 
+        // function packageInputs) was versatility;  form_inputs is used for it's id/type in highlighting fields.
         let information = {};
         Object.keys(form_inputs).forEach(key => {
             information[key] = form_inputs[key][`value`];
         });
-        console.log(`packageInputsIntoObject finished. information = `, information);
         return information;
     }
 
@@ -113,33 +106,54 @@ function main() {
         // Given the object userInfo, post the user into the user database.  The response is either a confirmation, or an error response,
         // consisting of an array of objects.
         return fetch(`/users`, {method: "POST", body: JSON.stringify(userInfo), headers : {"content-type": "application/json"}})
-        .then(response => response.json())/*{   !!!!!! Remove me in final product, just tried this.
-            const status = response.status;
-            const body = response.json();
-            return {status:status, body:body};
-        })*/
-        .catch(error => {
-            return error.message;
-        });
+        .then(response =>  {
+            if (!response.ok) {
+                throw new Error(`postUserToDatabase call resulted in ${response.statusText}`);
+            }
+            return response.json();
+        }); 
     }
 
-    function handleBackButtonClick() {
-        $(`.create_new_account_section`).on(`click`, `.back_button`, function() {
-            console.log(`ran handleBackButtonClick`);
-            hideAllSections();
-            unhideSection(`login_section`);
+    function verifyAcceptableUserInputs(form_inputs) {
+        // Verifies all text-based fields in the form_inputs object satisfy standards set in verifyInput. 
+        // Returns true if all fields fulfill standards.
+        let verified = true;
+
+        $(`.notification_section`).addClass(`hidden`);
+        Object.keys(form_inputs).forEach(function(input) {
+            const result = verifyInput(form_inputs[input]);
+            if (result !== "Accepted") {
+                highlightTextbox(form_inputs[input].id);
+                notifyUser(result);
+                verified = false;
+            } else {
+                removeHighlightTextbox(form_inputs[input].id);
+            }
         });
+        return verified;
+    }
+
+    function verifyInput(input) {
+        // Reads in input, uses input.name to determine what kind of tests the input must go through to be considered valid.
+        // Only verifying the password for now, but leaving this to be scalable.
+        let result = "Accepted";
+        if ((input.name === "userPassword") && input.value.length < 10) {
+            result = "The Password must be 10 characters or longer, with no extra whitespace before/after.";
+        } else 
+        if ((input.name === "userPassword") && input.value.trim() !== input.value) {
+            result = "The Password must be 10 characters or longer, with no extra whitespace before/after.";
+        }
+        return result;
     }
 
     function highlightTextbox(textbox) {
-        // Adds CSS to the textbox input (through the highlighted class) to make it stand out to the user, making it clear which textbox needs to be changed.
-        console.log(`highlightTextbox. textbox= `, textbox);
+        // Adds CSS to the textbox input (by adding the highlighted class) to make it stand out to the user, 
+        // making it clear which textbox needs to be changed.
         $(`#${textbox}`).addClass("highlighted");
     }
 
     function removeHighlightTextbox(textbox) {
-        // Removes CSS to the textbox input (through the highlighted class).
-        console.log(`highlightTextbox. textbox= `, textbox);
+        // Removes CSS to the textbox input (by removing the highlighted class).
         $(`#${textbox}`).removeClass("highlighted");
     }
 
@@ -152,22 +166,12 @@ function main() {
     };
 
     function handleLoginButton() {
-        // When user clicks the login button: 
-        // Verify through API the username and password are valid. (Server -> check database with find(), authenticate, attach JWT)
-        // If failure, let user know. Adding a short <p>.
-        // If success, load main page HTML (with userId).
-        // REST OF THIS ACTUALLY GOES TO MAIN.HTML
-        // (Server -> GET user's serialized information: fullName, Entries)
-        // Store user information locally in USER.
-        // For each entry in Entries.sort() with the user's ID (Server -> GET entries associated with userId): 
-        // Store entry locally in USER_ENTRIES.
-        // Display Name, Role, Address, Contact Name, Description.  Then a View Entry button and Update Entry button.
+        // When user clicks the login button: Verify the username and password are valid,
+        // then store the JWT in localStorage and load the main.html page.
         $(".login_section").on("submit", "form", function(event) {
-            console.log("handleLoginButton runs");
             event.preventDefault();
-            // Make explicit functions instead.
             const username = $(".input_username").val();
-            const password = $(".input_password").val();
+            const password = $(".input_userPassword").val();
 
             const authorizePromise = authorizeUser(username, password);
 
@@ -177,8 +181,8 @@ function main() {
                 localStorage.setItem(`harvest_united_username`, username);
                 loadMainPage();
             })
-            .catch(error => {
-               console.log(error.message);
+            .catch(() => {
+                notifyUser(`Username or password does not check out.`);
             });
         });
     }
@@ -189,7 +193,6 @@ function main() {
             username : username ,
             password : password
         };
-
         return fetch(`/auth/login`, {method : "POST", body : JSON.stringify(query), headers : {"content-type" : "application/json"}})
         .then(res => {
             if (res.ok) {
@@ -198,17 +201,16 @@ function main() {
             throw new Error("Username or password does not check out.");
         })
         .then(response => response.json())
+        .catch(() => {
+            throw new Error("Username or password does not check out.");
+        });
     }
 
     function loadMainPage() {
-        console.log("loadMainPage() runs");
-        console.log(`jwt token: `, localStorage.getItem(`harvest_united_jwt`));
-        console.log(`username: `, localStorage.getItem(`harvest_united_username`));
         window.location = "/main.html";
     }
 
     $(intializePage());
 }
-
 
 $(main());

@@ -17,9 +17,8 @@ const jwtAuth = passport.authenticate('jwt', { session: false });
 
 // Routing
 router.get(`/`, jwtAuth, (req, res) => {
-    console.log(`Accessed userRouter through the get request.`);
     const filters = {};
-    const queryableFields = [`username`];  // May apply other filters, so keeping as an array.
+    const queryableFields = [`username`];  // May apply other filters, so making an array.
     queryableFields.forEach(field => {
         if (req.query[field]) {
             filters[field] = req.query[field];
@@ -32,29 +31,24 @@ router.get(`/`, jwtAuth, (req, res) => {
             res.status(200).json(users.map(user => user.serialize()));
         })
         .catch(err => {
-            console.log(err);
             return res.status(500).json({message :`Internal Server Error`});
         });
 });
 
 router.get(`/:id`, jwtAuth, (req, res) => {
-    console.log(`Accessed userRouter through the get request.`);
     Users
         .findById(req.params.id)
         .then(user => {
             res.status(200).json(user.serialize());  
         })
         .catch(err => {
-            console.log(err);
             return res.status(500).json({message :`Internal Server Error`});
         });
 });
 
 router.post(`/`, jsonParser, (req, res) => {
-    console.log(`Accessed userRouter through the post request.`);
     const errorMessage = checkPostRequestForErrors(req);
     if (errorMessage.length > 0) {
-        console.log(errorMessage);
         return res.status(422).json(errorMessage);
     }
 
@@ -73,14 +67,16 @@ router.post(`/`, jsonParser, (req, res) => {
         .then(user => res.status(201).json(user.serialize()))
         .catch(err => {
             const message = `Failed to create user.`;
-            console.log(err);
             return res.status(400).send(message);
         });
+    })
+    .catch(function(error) {
+        const message = `Failed to hash password before creating user.`;
+        return res.status(400).send(message);
     });
 });
 
 router.put(`/:id`, jwtAuth, jsonParser, (req, res) => {
-    console.log(`Accessed userRouter through the put request.`);
     if (!(req.params.id && req.body.userId && req.params.id === req.body.userId)) {
         const msg = `${req.params.id} and ${req.body.userId} not the same`;
         return res.status(400).json({message : msg});
@@ -99,6 +95,9 @@ router.put(`/:id`, jwtAuth, jsonParser, (req, res) => {
                 return Users.hashPassword(req.body.userPassword)
                 .then(hashedPassword => {
                     toUpdate[field] = hashedPassword;
+                })
+                .catch(function(error) {
+                    return res.status(400).send(error);
                 });
             } else {
                 toUpdate[field] = req.body[field];
@@ -108,27 +107,23 @@ router.put(`/:id`, jwtAuth, jsonParser, (req, res) => {
 
     Users
     .findByIdAndUpdate(req.params.id, {$set : toUpdate})
-    .then(user => res.status(204).end())
+    .then(() => res.status(204).end())
     .catch(error => {
-        const message = `Failed to update user.`;
-        console.log(error.message);
-        return res.status(400).send(message);
+        return res.status(400).send(error);
     });
 });
 
 router.delete(`/:id`, jwtAuth, (req, res) => {
-    console.log(`Accessed userRouter through the delete request.`);
     Users.findByIdAndRemove(req.params.id)
-    .then(response => res.status(204).end())
+    .then(() => res.status(204).end())
     .catch(error => {
-        console.log("Failed to find user in database.");
         res.status(400).send(error.message);
     });
 });
 
 
 router.use('*', function (req, res) {
-    res.status(404).json({ message: 'Routing Not Found' });
+    res.status(404).json({ message: 'Routing Not Found.' });
 });
 
 // Helper functions
@@ -198,12 +193,12 @@ function checkPostRequestForErrors(req) {
         if (count > 0) {
             errorMessage.push({
                 message : `That username is already taken. The username must be unique.` ,
-                field : field
+                field : `username`
             });
         }
     })
     .catch(err => {
-        errorMessage.push({
+        err.push({
             message : `Server currently down. Please try again later.` ,
             field : null
         });
@@ -228,7 +223,7 @@ function checkPutRequestForErrors(req) {
 
     stringFields.forEach(field => {
         if ((field in req.body) && typeof req.body[field] !== 'string') {
-            errorMessage.push(`The field ${field} is not a string.`);   // !!!!!! Like the Post version, can make this into an object as well.
+            errorMessage.push(`The field ${field} is not a string.`);
         }
     });
 
@@ -251,7 +246,7 @@ function checkPutRequestForErrors(req) {
 
     Users
     .find({username : req.body.username})
-    .count()
+    .countDocuments()
     .then(count => {
         if (count > 0) {
             errorMessage.push(`That username is already taken. The username must be unique.`);

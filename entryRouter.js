@@ -29,7 +29,6 @@ router.get(`/`, (req, res) => {
             res.status(200).json(entries.map(entry => entry.serialize()));
         })
         .catch(err => {
-            console.log(err);
             return res.status(500).json({message :`Internal Server Error`});
         });
 });
@@ -42,7 +41,6 @@ router.get(`/:id`, (req, res) => {
             res.status(200).json(entry.serialize());  
         })
         .catch(err => {
-            console.log(err);
             return res.status(500).json({message :`Internal Server Error`});
         });
 });
@@ -52,12 +50,10 @@ router.post(`/`, jsonParser, (req, res) => {
     const requiredFields = [`entryCreationDate`,`entryName`,`entryUserFullName`,`entryUserEmail`,`entryUserPhoneNumber`,`entryUsersId`,
     `entryRole`,`entryAddress`,`entryDescription`,`entryFoodAvailable`];
 
-    console.log(req.body);
     let errored = false;
     let message = [];
     requiredFields.forEach(field => {
         if (!(field in req.body)) {
-            console.log(`issue with: `, field);
             message.push(`The field ${field} is missing from the request.`);
             errored = true;
         }
@@ -66,14 +62,12 @@ router.post(`/`, jsonParser, (req, res) => {
     const requiredAddressFields = [`entryStreetAddress`,`entryCity`,`entryState`,`entryCountry`,`entryZipcode`];
     requiredAddressFields.forEach(addressField => {
         if (req.body[`entryAddress`] && !(addressField in req.body[`entryAddress`])) {
-            console.log(`issue with: `, addressField);
             message.push(`The field ${addressField} within entryAddress is missing from the request.`);
             errored = true;
         }
     });
 
     if (errored) {
-        console.log("Error in the required field postings.");
         return res.status(400).json(message);
     }
 
@@ -97,9 +91,8 @@ router.post(`/`, jsonParser, (req, res) => {
             entryFoodAvailable : req.body.entryFoodAvailable ,
         })
         .then(entry => res.status(201).json(entry.serialize()))
-        .catch(err => {
+        .catch(() => {
             const message = `Failed to create entry`;
-            console.log(err.message);
             return res.status(400).send(message);
         });
 });
@@ -132,9 +125,8 @@ router.put(`/:id`, jsonParser, (req, res) => {
     Entries
     .findByIdAndUpdate(req.params.id, {$set : toUpdate})
     .then(entry => res.status(204).end())
-    .catch(error => {
+    .catch(() => {
         const message = `Failed to update entry`;
-        console.log(error);
         return res.status(400).send(message);
     });
 });
@@ -148,8 +140,6 @@ router.delete(`/:id`, (req, res) => {
         res.status(400).send(message);
     });
 });
-
-
 
 router.use('*', function (req, res) {
     res.status(404).json({ message: 'Routing Not Found' });
