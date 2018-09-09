@@ -1,6 +1,4 @@
 
-console.log("Hello main.js");
-
 function main() {
     let JWT_KEY;
     let USERNAME;
@@ -106,9 +104,26 @@ function main() {
                 displayEmptyStatus();
             }
         })
-        .catch((error) => {
+        .catch(() => {
             notifyUser(`Unable to find your entries.  Logout and try again.`);
         });
+    }
+
+    function loadSourceSection() {
+        // Function used after updating or deleting an entry. Depending on whether the user was in the Status section
+        // or the Search section prior to updating/deleting an entry, user is returned there.
+        if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
+            hideAllSections();
+            unhideSection(`status_section`);
+            loadStatusSection();
+        } else
+        if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
+            hideAllSections();
+            unhideSection(`search_entry_section`);
+            unhideSection(`search_results_section`);
+            displaySearchEntrySection();
+            displaySearchResultSection(SEARCH_ENTRIES);  // Chose not to simply unhide this section, as it may be updated. Updating HTML.  
+        }
     }
 
     function getUserEntries() {
@@ -889,8 +904,9 @@ function main() {
                     deleteEntryInDatabase(entryIdToDelete)
                     .then(() => {
                         deleteEntryInUserEntries(entryIdToDelete);
+                        deleteEntryInSearchEntries(entryIdToDelete);
 
-                        loadStatusSection();
+                        loadSourceSection();
                         M.toast({html: 'Entry deleted.'});
                     })
                     .catch(error => {
@@ -915,12 +931,30 @@ function main() {
 
     function deleteEntryInUserEntries(deletingEntryId) {
         // Removes the entry from USER_ENTRIES using the id specified.
-        let userEntryIndex = USER_ENTRIES.find((entry, index) => {
+        let userEntryIndex;
+        USER_ENTRIES.forEach((entry, index) => {
             if (deletingEntryId === entry.entryId) {
-                return index;
+                userEntryIndex = index;
             }
         });
-        USER_ENTRIES.splice(userEntryIndex, 1);
+        if (userEntryIndex !== -1) {
+            USER_ENTRIES.splice(userEntryIndex, 1);
+        }
+    }
+
+    function deleteEntryInSearchEntries(deletingEntryId) {
+        // Removes the entry from SEARCH_ENTRIES using the id specified.
+        if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
+            let userEntryIndex;
+            SEARCH_ENTRIES.forEach((entry, index) => {
+                if (deletingEntryId === entry.entryId) {
+                    userEntryIndex = index;
+                }
+            });
+            if (userEntryIndex !== -1) {
+                SEARCH_ENTRIES.splice(userEntryIndex, 1);
+            }
+        }
     }
 
     function handleBackButtonClick() {
@@ -928,20 +962,9 @@ function main() {
         $(`.view_entry_section`).on(`click`, `.back_button`, function() {
             checkAuthorizedUser()
             .then(() => {
-                if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
-                    hideAllSections();
-                    unhideSection(`status_section`);
-                    displayStatusSection();
-                } else
-                if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
-                    hideAllSections();
-                    unhideSection(`search_entry_section`);
-                    unhideSection(`search_results_section`);
-
-                    displaySearchResultSection(SEARCH_ENTRIES);  // Chose not to simply unhide this section, as it may be updated. Updating HTML.  
-                }
+                loadSourceSection();
             })
-            .catch(error => {
+            .catch(() => {
                 notifyUser(`Your session appears to have ended. Refresh and try again.`);
             });
         });
