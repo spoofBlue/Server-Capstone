@@ -19,21 +19,20 @@ User can either create "donator" or "receiver" entries.
 
 Libaries and Tools:
 This section partially educates viewers of the README on what programs they may need to be familiar with reading.  Additionally, I'm showcase my knowledge of these tools most-integral to this project.
-- JQuery: Client-side Javascript DOM-interaction library.
-- Geoname API: API can take a zipcode input and output other nearby zipcodes.
-- Node.js: Server-side Javascript implementation.
-- Express: Server-side framework.
-- Passport.js: Authentication library.
-- MongoDB: Database.
-- Mongoose: Mongo-based model library.
-- Chai: Local integration testing.
-- Gitbash: Command line.
-- Git: Version management and deployment.
-- NPM: Javascript package manager.
-- Nodemon: Code development assistance tool.
-- Travis CI: Automated online testing.
-- Heroku: Cloud-based server platform.
-- mLab: Cloud-based database.
+- JQuery: Client-side Javascript DOM-interaction library. https://jquery.com/
+- Geoname API: API can take a zipcode input and output other nearby zipcodes. http://www.geonames.org/export/web-services.html#findNearbyPostalCodes
+- Node.js: Server-side Javascript implementation. https://nodejs.org/en/
+- Express: Server-side framework. https://expressjs.com/
+- Passport.js: Authentication library. http://www.passportjs.org/
+- MongoDB: Database. https://www.mongodb.com/
+- Mongoose: Mongo-based model library. https://mongoosejs.com/
+- Chai: Local integration testing. http://www.chaijs.com/
+- Git: Version management and deployment. https://git-scm.com/
+- NPM: Javascript package manager. https://www.npmjs.com/
+- Nodemon: Code development assistance tool. https://nodemon.io/
+- Travis CI: Automated online testing. https://travis-ci.org/
+- Heroku: Cloud-based server platform. https://devcenter.heroku.com/
+- mLab: Cloud-based database. https://mlab.com/
 
 Reflection / Things I would have done differently / Other updates I plan to make upon revisiting the project:
 
