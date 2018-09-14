@@ -245,11 +245,14 @@ function main() {
             if ((input.name === "searchMileRadius") && Number.isNaN(parseInt(input.value))) {
                 result = "The Mile Radius must be a number.";
             } else
-            if (input.name === "searchMileRadius" && parseInt(input.value) > 15) {
-                result = "The Mile Radius must be 15 or less.";
+            if (input.name === "searchMileRadius" && parseInt(input.value) > 40) {
+                result = "The Mile Radius must be 40 or less.";
             } else
             if ((input.name === "entryZipcode" || input.name === "searchZipcode") && Number.isNaN(parseInt(input.value))) {
                 result = "The zipcode must be a number.";
+            }
+            if ((input.name === "entryZipcode" || input.name === "searchZipcode") && input.value.length !== 5) {
+                result = "The zipcode must be five digits long.";
             }
         } else
         if (input.name === `entryAddress`) {
@@ -634,29 +637,32 @@ function main() {
     }
 
     function getNearbyZipcodes(form_inputs) {
-        // Using the Geonames API, and a given zipcode and mile radius in form_inputs, gets 10 nearest zipcodes.
+        // Makes a request to the server, which makes a request to the Geonames API, 
+        // Given zipcode and mile radius in form_inputs, gets 15 nearest zipcodes.
         // Returns a promise with an array of zipcodes.
-        let zipCodes = [];
+        let zipcodes = [];
+        const quantity = 15;
+        console.log(`arrived in getNearbyZipcodes`);
 
-        let username = "corunnery";                 // Account established through Cory!
-        let country = "US";                         // We are assuming we're working in the United States for now.
-        let zipCode = form_inputs["searchZipcode"].value;
-        let radius = (form_inputs["searchMileRadius"].value * 1.60934);   // Converting the miles from the user to kilometers for the API.
-        let maxRows = "10";
-        let query = `username=${username}&country=${country}&postalcode=${zipCode}&radius=${radius}&maxRows=${maxRows}`;
-        return fetch(`https://api.geonames.org/findNearbyPostalCodesJSON?${query}`)
-            .then(response => response.json())
-            .then(data => {
-            if (data[`postalCodes`]) {
-                data[`postalCodes`].forEach(function(area) {
-                    zipCodes.push(area.postalCode);
-                });
-            }
-            return zipCodes;
+        let initZipCode = form_inputs["searchZipcode"].value;
+        let radius = (form_inputs["searchMileRadius"].value);
+        const key = "6g4fkdzmkwnn8axr";                 // Account established through Cory!
+        const country = "U";                         // We are assuming we're working in the United States for now.
+        return fetch(`https://www.zipwise.com/webservices/radius.php?key=${key}&zip=${initZipCode}&radius=${radius}&country=${country}&format=json`)
+        //return fetch(`/zipcodeAPI?zipCode=${initZipCode}&radius=${radius}`, {method : "GET"})
+        .then(response => response.json())
+        .then(data => {
+            console.log(`zipcodeRouter. data= `, data);
+            const areas = data.results.slice(0, quantity); //results obj is an array of objects, each object has a "zip" key, among other things.
+            areas.forEach(function(area) {
+                zipcodes.push(area.zip);
+            });
+            console.log(`zipcodeRouter. zipcodes= `, zipcodes);
+            return zipcodes;
         })
         .catch(error => {
-            alert(`GeoNames API not returning everything properly.`);
-            return zipCodes;
+            alert(`Zipwise API not returning everything properly.`);
+            return error;
         });
     }
 

@@ -8,7 +8,6 @@ const {Entries} = require(`./entryModel`);
 const router = express.Router();
 const jsonParser = bodyParser.json();
 
-
 router.get(`/`, (req, res) => {
     console.log(`Accessed entryRouter through the get request.`);
     const filters = {};

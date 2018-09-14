@@ -11,6 +11,7 @@ const passport = require(`passport`);
 
 const entryRouter = require(`./entryRouter`);
 const userRouter = require(`./userRouter`);
+const zipcodeRouter = require(`./zipcodeRouter`);
 const { router: authRouter, localStrategy, jwtStrategy } = require('./auth');
 const {DATABASE_URL, PORT} = require(`./config.js`);
 
@@ -43,6 +44,7 @@ passport.use(jwtStrategy);
 app.use('/auth', authRouter);
 app.use(`/users`, userRouter);
 app.use(`/entries`, entryRouter);
+app.use(`/zipcodeAPI`, zipcodeRouter);
 
 const jwtAuth = passport.authenticate('jwt', { session: false });
 

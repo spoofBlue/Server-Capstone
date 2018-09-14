@@ -260,7 +260,15 @@ button {
 
 @media screen and (max-width: 520px) {
     html {
-        font-size : 12px;
+        font-size : 10px;
         line-height : 1.2;
     } 
+
+    form {
+        padding : 0px;
+    }
+
+    .card, .card-content {
+        padding : 12px;
+    }
 }
