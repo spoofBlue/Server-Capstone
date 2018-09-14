@@ -18,7 +18,7 @@ const EntrySchema = mongoose.Schema({
         entryZipcode : {type : String , required : true} 
     } ,
     "entryDescription" : {type : String , required : true} ,
-    "entryFoodAvailable" : {type : String , required : true} ,
+    "entryFoodAvailable" : {type : String } ,
     "entryLastUpdatedDate" : {type : String}
 });
 

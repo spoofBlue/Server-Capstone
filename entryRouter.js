@@ -47,7 +47,7 @@ router.get(`/:id`, (req, res) => {
 router.post(`/`, jsonParser, (req, res) => {
     console.log(`Accessed entryRouter through the post request.`);
     const requiredFields = [`entryCreationDate`,`entryName`,`entryUserFullName`,`entryUserEmail`,`entryUserPhoneNumber`,`entryUsersId`,
-    `entryRole`,`entryAddress`,`entryDescription`,`entryFoodAvailable`];
+    `entryRole`,`entryAddress`,`entryDescription`];
 
     let errored = false;
     let message = [];
