@@ -642,22 +642,18 @@ function main() {
         // Returns a promise with an array of zipcodes.
         let zipcodes = [];
         const quantity = 15;
-        console.log(`arrived in getNearbyZipcodes`);
 
         let initZipCode = form_inputs["searchZipcode"].value;
         let radius = (form_inputs["searchMileRadius"].value);
         const key = "6g4fkdzmkwnn8axr";                 // Account established through Cory!
         const country = "U";                         // We are assuming we're working in the United States for now.
         return fetch(`https://www.zipwise.com/webservices/radius.php?key=${key}&zip=${initZipCode}&radius=${radius}&country=${country}&format=json`)
-        //return fetch(`/zipcodeAPI?zipCode=${initZipCode}&radius=${radius}`, {method : "GET"})
         .then(response => response.json())
         .then(data => {
-            console.log(`zipcodeRouter. data= `, data);
             const areas = data.results.slice(0, quantity); //results obj is an array of objects, each object has a "zip" key, among other things.
             areas.forEach(function(area) {
                 zipcodes.push(area.zip);
             });
-            console.log(`zipcodeRouter. zipcodes= `, zipcodes);
             return zipcodes;
         })
         .catch(error => {
