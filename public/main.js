@@ -45,6 +45,26 @@ function main() {
         });
     }
 
+    function loadStatusSection() {
+        // Gathers USER_ENTRIES, then displays them if they're present.
+        // This function can load the HTML by clicking the Status Tab (route from handleStatusTabClick) 
+        // or from intial page load (initializePage).
+        getUserEntries()
+        .then(() => {
+            hideAllSections();
+            unhideSection(`status_section`);
+            CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
+            if (USER_ENTRIES.length > 0) {
+                displayStatusSection();
+            } else {
+                displayEmptyStatus();
+            }
+        })
+        .catch(() => {
+            notifyUser(`Unable to find your entries.  Logout and try again.`);
+        });
+    }
+
     function establishCredentials() {
         // Load, then remove credentials passed on from the index.js save to localStorage.  To retain JWT key and username.
         JWT_KEY = localStorage.getItem(`harvest_united_jwt`);
@@ -86,26 +106,6 @@ function main() {
         })
         .catch(error => {
             notifyUser(`Unable to retrieve your user info. Logout and try again.`);
-        });
-    }
-
-    function loadStatusSection() {
-        // Gathers USER_ENTRIES, then displays them if they're present.
-        // This function can load the HTML by clicking the Status Tab (route from handleStatusTabClick) 
-        // or from intial page load (initializePage).
-        getUserEntries()
-        .then(() => {
-            hideAllSections();
-            unhideSection(`status_section`);
-            CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
-            if (USER_ENTRIES.length > 0) {
-                displayStatusSection();
-            } else {
-                displayEmptyStatus();
-            }
-        })
-        .catch(() => {
-            notifyUser(`Unable to find your entries.  Logout and try again.`);
         });
     }
 
