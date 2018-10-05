@@ -36,6 +36,9 @@
     "node",
     "express"
   ],
+  "engines": {
+    "node": "8.12.0"
+  },
   "author": "Cory Nanni",
   "license": "ISC"
 }
