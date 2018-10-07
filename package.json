@@ -1,10 +1,10 @@
 {
-  "name": "server-capstone",
+  "name": "server-capstone", 
   "version": "1.0.0",
   "description": "Cory's project to showcase server and database expertise.",
   "main": "server.js",
   "dependencies": {
-    "bcrypt": "^3.0.0",
+    "bcrypt": "^2.0.1",
     "bcryptjs": "^2.4.3",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
