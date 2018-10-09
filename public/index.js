@@ -31,9 +31,6 @@ function main() {
 
             $(`.notification_section`).empty();
             hideSection(`notification_section`);
-            console.log(`test=`, event.target.getAttribute(`index`));
-            console.log($(this).parent().get(0).className.indexOf(`active`) !== -1);
-            console.log(event.target.getAttribute(`index`) === 1);
             if ($(this).parent().get(0).className.indexOf(`active`) === -1 && event.target.getAttribute(`index`) === "1") {
                 setFrontPageImageHeight("auto");
             } else {
