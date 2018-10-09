@@ -53,6 +53,7 @@ function main() {
         .then(() => {
             hideAllSections();
             unhideSection(`status_section`);
+            setFrontPageImageHeight(`status_section`);
             CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
             if (USER_ENTRIES.length > 0) {
                 displayStatusSection();
@@ -115,12 +116,14 @@ function main() {
         if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
             hideAllSections();
             unhideSection(`status_section`);
+            setFrontPageImageHeight('status_section');
             loadStatusSection();
         } else
         if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
             hideAllSections();
             unhideSection(`search_entry_section`);
             unhideSection(`search_results_section`);
+            setFrontPageImageHeight('search_entry_section');
             displaySearchEntrySection();
             displaySearchResultSection(SEARCH_ENTRIES);  // Chose not to simply unhide this section, as it may be updated. Updating HTML.  
         }
@@ -154,6 +157,15 @@ function main() {
     function unhideSection(section) {
         // Removes the `hidden` CSS class (which has display:none) from the argument `section` to make it visible in the HTML.
         $(`.${section}`).removeClass(`hidden`);
+    }
+
+    function setFrontPageImageHeight(section) {
+        // Changes the sizing of the background image and overlay, based on which section is loaded  Typically longer sections make the background expand to wrap around section.
+        if (section === 'create_new_entry_section' || section === 'update_entry_section') {
+            $(`#front-image-container`).css("height", `auto`);
+        } else {
+            $(`#front-image-container`).css("height", `100%`);
+        }
     }
 
     function getEntryInfoFromEntryId(id) {
@@ -310,7 +322,7 @@ function main() {
                 `<li class="entry">
                 <div class="row">
                     <div class="col s12 m10 offset-m1">
-                        <div class="card orange lighten-4">
+                        <div class="card">
                             <div class="card-content">
                                 <h4 class="card-title">${entry.entryName}</h4>
                                 <p class="float-right"><b>Role:</b> ${entry.entryRole}</p>
@@ -333,9 +345,27 @@ function main() {
     function displayEmptyStatus() {
         // Fills in the HTML of .status_section.
         $(`.status_section`).html(
-        `<h3>Status Page of ${USER.userFullName}</h3>
-        <p>You currently have no entries listed. Click on the Create Entry tab to create a new entry!</p>`
-        );
+        `<h3><strong>Status Page of ${USER.userFullName}</strong></h3>
+        <p>You currently have no entries listed, but we have an example entry below.</p>
+        <p>Click on the Create Entry tab to create a new entry!</p>
+        `);
+        $(`.status_section ul`).append(
+            `<li class="entry">
+            <div class="row">
+                <div class="col s12 m10 offset-m1">
+                    <div class="card">
+                        <div class="card-content">
+                            <h4 class="card-title">Bob's Market</h4>
+                            <p class="float-right"><b>Role:</b> Receiver</p>
+                            <p><b>Address:</b> 123 Oak Avenue</p>
+                            <p><b>Contact:</b> Bob Smith</p>
+                            <p><b>Description:</b> We're a local food market on the west side of Austin.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </li>
+        `);
     }
 
     function handleCreateNewEntryTabClick() {
@@ -345,6 +375,7 @@ function main() {
             .then(() => {
                 hideAllSections();
                 unhideSection(`create_new_entry_section`);
+                setFrontPageImageHeight('create_new_entry_section');
                 CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
                 displayCreateNewEntrySection();
             })
@@ -409,6 +440,7 @@ function main() {
             .then(() => {
                 hideAllSections();
                 unhideSection(`search_entry_section`);
+                setFrontPageImageHeight('search_entry_section');
                 displaySearchEntrySection();
             })
             .catch(error => {
@@ -460,9 +492,10 @@ function main() {
         $("main").on("click", ".view_entry_button", function(event) {
             checkAuthorizedUser()
             .then(() => {
-                getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in value.
+                getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in <he.
                 hideAllSections();
                 unhideSection(`view_entry_section`);
+                setFrontPageImageHeight('view_entry_section');
                 displayViewEntrySection();
             })
             .catch(error => {
@@ -523,6 +556,7 @@ function main() {
                 getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in value.
                 hideAllSections();
                 unhideSection(`update_entry_section`);
+                setFrontPageImageHeight('update_entry_section');
                 displayUpdateEntrySection();
             })
             .catch(error => {
@@ -699,7 +733,7 @@ function main() {
     function displaySearchResultSection(entries) {
         // Display each entry from SEARCH_ENTRIES.
         $(`.search_results_section`).html(
-            `<h3>Results: ${entries.length} entries.</h3>
+            `<h3><strong>Results: ${entries.length} entries.</strong></h3>
             <ul></ul>`
         );
         entries.forEach(entry => {
@@ -707,7 +741,7 @@ function main() {
                 `<li class="entry">
                 <div class="row">
                     <div class="col s12 m10 offset-m1">
-                        <div class="card orange lighten-4">
+                        <div class="card">
                             <div class="card-content">
                                 <h4 class="card-title">${entry.entryName}</h4>
                                 <p class="right"><b>Role:</b> ${entry.entryRole}</p>
@@ -754,6 +788,7 @@ function main() {
                         addEntryToUserEntries(entryInfo); 
                         hideAllSections();
                         unhideSection(`view_entry_section`);
+                        setFrontPageImageHeight('view_entry_section');
                         CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
                         displayViewEntrySection();
                         M.toast({html: 'Entry created!'});
@@ -839,6 +874,7 @@ function main() {
                         updateEntryInUserEntries(updatedEntry);
                         hideAllSections();
                         unhideSection(`view_entry_section`);
+                        setFrontPageImageHeight('view_entry_section');
                         displayViewEntrySection();
                         M.toast({html: 'Entry updated!'});
                     })
