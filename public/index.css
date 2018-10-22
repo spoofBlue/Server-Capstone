@@ -280,6 +280,10 @@ button {
         max-width : 720px;
         padding-left : 10px;
     }
+
+    .view_entry_section {
+        margin-top : 100px;
+    }
 }
 
 @media screen and (max-width: 694px) {
