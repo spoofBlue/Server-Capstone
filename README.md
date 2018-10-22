@@ -61,7 +61,7 @@ Reflection / Things I would have done differently:
 - One mistake I had in created the CSS for this project was not designing mobile-first; as a result, I make media-queries accounting for smaller screen sizes to correct this.  In a thorough update of this project, and in future projects, I will have this mindset.
 - I used the Materialize CSS-framework for this project.  Although it was helpful in some regards (it brought in pre-made fade-effects and animations), it also brought in some annoying properties which I had to correct forcefully (through the CSS !important affix).  It may have been worth opting out of the use of Materialize. Pros and Cons.
 ______________________________________________________________
-Screenshots: See the ScreenImages document
+Screenshots: See the ScreenImages document.
 The login page – You’re also able to create a new account form this page. Utilize a collapsible menu.  If you are unauthenticated and attempt to access the main.html page, you’re automatically redirected here.
 
 The main page - You’re able to access any of your entries from here.  The top navigation bar enables you to create a new entry, search for entries, or log out.
