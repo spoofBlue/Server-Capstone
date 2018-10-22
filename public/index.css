@@ -153,12 +153,12 @@ nav .material-icons {
 }
 
 .card-content {
-    padding : 12px;
+    padding : 18px !important; /* Must override materialze.card-contents imported settings. */
 }
 
 .card-action {
     border-top : 1px solid black;
-    padding : 12px 16px;
+    padding : 0px 24px 12px !important; /* Must override materialze.card-contents imported settings. */
 }
 
 .status_section, .search_results_section {
@@ -251,8 +251,12 @@ button {
 
 /*  Side-Navigation Bar  */
 
+.sidenav {
+    max-width : 75%;
+}
+
 .sidenav li button {
-    width : 100%
+    width : 100%;
 }
 
 .sidenav li {

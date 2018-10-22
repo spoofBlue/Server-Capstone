@@ -348,7 +348,8 @@ function main() {
         `<h3><strong>Status Page of ${USER.userFullName}</strong></h3>
         <p>You currently have no entries listed, but we have an example entry below.</p>
         <p>Click on the Create Entry tab to create a new entry!</p>
-        `);
+        <ul></ul>`
+        );
         $(`.status_section ul`).append(
             `<li class="entry">
             <div class="row">
@@ -360,6 +361,10 @@ function main() {
                             <p><b>Address:</b> 123 Oak Avenue</p>
                             <p><b>Contact:</b> Bob Smith</p>
                             <p><b>Description:</b> We're a local food market on the west side of Austin.</p>
+                        </div>
+                        <div class="card-action">
+                            <button disabled class="view_entry_button waves-effect waves-light btn" title="View Entry Button">View</button>
+                            <button disabled class="update_entry_button waves-effect waves-light btn" title="Update Entry Button">Update</button>
                         </div>
                     </div>
                 </div>
@@ -422,7 +427,7 @@ function main() {
                     <label for="input_entry_contact_name">Contact's Name:</label>
                     <input type="text" name="entryUserFullName" placeholder="Bob Smith" id="input_entry_contact_name" value="${USER.userFullName}" required>
                     <label for="input_entry_contact_email">E-mail:</label>
-                    <input type="text" name="entryUserEmail" placeholder="bobsmith@place.com" id="input_entry_contact_email" value="${USER.userEmail}" required>
+                    <input type="email" name="entryUserEmail" placeholder="bobsmith@place.com" id="input_entry_contact_email" value="${USER.userEmail}" required>
                     <label for="input_entry_contact_phoneNumber">Phone Number:</label>
                     <input type="text" name="entryUserPhoneNumber" placeholder="123-456-7890" id="input_entry_contact_phoneNumber" value="${USER.userPhoneNumber}" required>
                 </fieldset>
@@ -623,7 +628,7 @@ function main() {
                     <label for="input_entry_contact_name">Contact's Name:</label>
                     <input type="text" name="entryUserFullName" value="${CURRENT_ENTRY.entryUserFullName}" id="input_entry_contact_name" required>
                     <label for="input_entry_contact_email">E-mail:</label>
-                    <input type="text" name="entryUserEmail" value="${CURRENT_ENTRY.entryUserEmail}" id="input_entry_contact_email" required>
+                    <input type="email" name="entryUserEmail" value="${CURRENT_ENTRY.entryUserEmail}" id="input_entry_contact_email" required>
                     <label for="input_entry_contact_phoneNumber">Phone Number:</label>
                     <input type="text" name="entryUserPhoneNumber" value="${CURRENT_ENTRY.entryUserPhoneNumber}" id="input_entry_contact_phoneNumber" required>
                 </fieldset>
