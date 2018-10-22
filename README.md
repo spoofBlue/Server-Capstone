@@ -1,7 +1,7 @@
 # Server-Capstone
 
 Live App link: https://mighty-falls-28563.herokuapp.com/ 
-(If you would like an account with entries already included, sign in with the username "Bobby" and the password "hellohello" without the quotation marks.)
+(If you would like an account with entries already included, sign in with the username "Bobby" and the password "hellohello" without the quotation marks. When searching for entries, use the zipcode "12345" click the "Receivers" radio button.)
 
 Quick Project Summary:
 This is my project site called Harvest United.  The goal of the site is to connect restaurants and markets that naturally hold excess food, with non-profit organizations (food shelters, soup kitchens) for a food exchange.
@@ -62,6 +62,7 @@ Reflection / Things I would have done differently:
 - I used the Materialize CSS-framework for this project.  Although it was helpful in some regards (it brought in pre-made fade-effects and animations), it also brought in some annoying properties which I had to correct forcefully (through the CSS !important affix).  It may have been worth opting out of the use of Materialize. Pros and Cons.
 ______________________________________________________________
 Screenshots: See the ScreenImages document.
+
 The login page – You’re also able to create a new account form this page. Utilize a collapsible menu.  If you are unauthenticated and attempt to access the main.html page, you’re automatically redirected here.
 
 The main page - You’re able to access any of your entries from here.  The top navigation bar enables you to create a new entry, search for entries, or log out.
