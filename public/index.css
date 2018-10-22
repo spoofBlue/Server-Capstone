@@ -210,8 +210,9 @@ form {
     pointer-events: inherit;
 }
 
-.form input[type="text"], .form input[type="password"] {
+.form input[type="text"], .form input[type="password"], .form input[type="email"] {
     background-color : white !important;
+    height : 2rem;
     border-bottom : 1px solid rgb(59, 59, 59);
     padding-left : 2%;
     width : 98%;
