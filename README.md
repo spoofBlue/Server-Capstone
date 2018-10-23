@@ -1,7 +1,7 @@
 # Server-Capstone
 
 Live App link: https://mighty-falls-28563.herokuapp.com/ 
-(If you would like an account with entries already included, sign in with the username "Bobby" and the password "hellohello" without the quotation marks. When searching for entries, use the zipcode "12345" click the "Receivers" radio button.)
+(If you would like an account with entries already included, sign in with the username "Bobby" and the password "hellohello" without the quotation marks. When searching for entries, use the zipcode "12345", both the "Donator" and "Receiver" radio buttons show results.)
 
 Quick Project Summary:
 This is my project site called Harvest United.  The goal of the site is to connect restaurants and markets that naturally hold excess food, with non-profit organizations (food shelters, soup kitchens) for a food exchange.
