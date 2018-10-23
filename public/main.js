@@ -1,4 +1,7 @@
 
+// Functions separated into groups (1: Initial page loading functions, 2: Page specific functions,
+// 3: API request functions, 4: Global storage functions, 5: Versatile functions)
+
 function main() {
     let JWT_KEY;
     let USERNAME;
@@ -37,35 +40,13 @@ function main() {
             loadLoginPage();
         }); 
     }
-    
-    function loadSideNavigation() {
-        // Establishes the side navigation bar to be operable. (May only have display not set to none when screen is small).
-        $(document).ready(function(){
-            $('.sidenav').sidenav();
-        });
+
+    function loadLoginPage() {
+        // Load and move to the Login page HTML in the browser.
+        window.location = "/index.html";
     }
 
-    function loadStatusSection() {
-        // Gathers USER_ENTRIES, then displays them if they're present.
-        // This function can load the HTML by clicking the Status Tab (route from handleStatusTabClick) 
-        // or from intial page load (initializePage).
-        getUserEntries()
-        .then(() => {
-            hideAllSections();
-            unhideSection(`status_section`);
-            setFrontPageImageHeight(`status_section`);
-            CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
-            if (USER_ENTRIES.length > 0) {
-                displayStatusSection();
-            } else {
-                displayEmptyStatus();
-            }
-        })
-        .catch(() => {
-            notifyUser(`Unable to find your entries.  Logout and try again.`);
-        });
-    }
-
+    //////////////////// 1: Initial page loading functions (besides the event handling functions) /////////////////////////////
     function establishCredentials() {
         // Load, then remove credentials passed on from the index.js save to localStorage.  To retain JWT key and username.
         JWT_KEY = localStorage.getItem(`harvest_united_jwt`);
@@ -90,11 +71,6 @@ function main() {
         }); 
     }
 
-    function loadLoginPage() {
-        // Load and move to the Login page HTML in the browser.
-        window.location = "/index.html";
-    }
-
     function getUserInfo() {
         // User's already logged in.  Getting serialized information on the user to store locally (USER).
         const jwt = JWT_KEY;
@@ -109,29 +85,17 @@ function main() {
             notifyUser(`Unable to retrieve your user info. Logout and try again.`);
         });
     }
-
-    function loadSourceSection() {
-        // Function used after updating or deleting an entry. Depending on whether the user was in the Status section
-        // or the Search section prior to updating/deleting an entry, user is returned there.
-        if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
-            hideAllSections();
-            unhideSection(`status_section`);
-            setFrontPageImageHeight('status_section');
-            loadStatusSection();
-        } else
-        if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
-            hideAllSections();
-            unhideSection(`search_entry_section`);
-            unhideSection(`search_results_section`);
-            setFrontPageImageHeight('search_entry_section');
-            displaySearchEntrySection();
-            displaySearchResultSection(SEARCH_ENTRIES);  // Chose not to simply unhide this section, as it may be updated. Updating HTML.  
-        }
+    
+    function loadSideNavigation() {
+        // Establishes the side navigation bar to be operable. (however, display:none until screen is small).
+        $(document).ready(function(){
+            $('.sidenav').sidenav();
+        });
     }
 
     function getUserEntries() {
-        // User's already logged in.  Getting serialized information on the entries of a specific entryUserId 
-        // (the current user's userId) to store locally.
+        // Getting serialized information on the entries of a specific entryUserId (the current user's userId)
+        // to store locally.
         const user_entries_promise = new Promise((resolve, reject) => {
             $.get(`/entries?entryUsersId=${USER.userId}`, function(data, status) {
                 if (status === `success`) {
@@ -145,157 +109,7 @@ function main() {
         return user_entries_promise;
     }
 
-    function hideAllSections() {
-        // Adds the `hidden` CSS class (which has display:none) from all sections, making them invisible in the HTML.
-        const sections = [`notification_section`,`status_section`, `create_new_entry_section`, `search_entry_section`, `search_results_section`, `view_entry_section`, `update_entry_section`];
-        sections.forEach(section => {
-            $(`.${section}`).addClass(`hidden`);
-            $(`.${section}`).empty();
-        })
-    }
-
-    function unhideSection(section) {
-        // Removes the `hidden` CSS class (which has display:none) from the argument `section` to make it visible in the HTML.
-        $(`.${section}`).removeClass(`hidden`);
-    }
-
-    function setFrontPageImageHeight(section) {
-        // Changes the sizing of the background image and overlay, based on which section is loaded  Typically longer sections make the background expand to wrap around section.
-        if (section === 'create_new_entry_section' || section === 'update_entry_section') {
-            $(`#front-image-container`).css("height", `auto`);
-        } else {
-            $(`#front-image-container`).css("height", `100%`);
-        }
-    }
-
-    function getEntryInfoFromEntryId(id) {
-        // Get's the object with entryId "id" from USER_ENTRIES or SEARCH_ENTRIES, depending on which section user was in when accessing entry.
-        if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
-            USER_ENTRIES.forEach(entry => {
-                if (entry.entryId === id) {
-                    CURRENT_ENTRY = entry;
-                }
-            });
-        } else  
-        if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
-            SEARCH_ENTRIES.forEach(entry => {
-                if (entry.entryId === id) {
-                    CURRENT_ENTRY = entry;
-                }
-            });
-        }
-    }
-    
-    function gatherUserInputs(section) {
-        // Given a section, parses through all the inputs in the section (likely in a form), and stores any details about the input into object
-        // form_inputs.  Notice the addressDetails array, any inputs with a name in addressDetails gets placed into an object with form_inputs
-        // called entryAddress.
-        let form_inputs = {};
-
-        const addressDetails = [`entryStreetAddress`,`entryCity`,`entryState`,`entryCountry`,`entryZipcode`];
-        $(`.${section} input`).each(function() {
-            let input = $(this);
-            if (input.attr("type") === "radio") {
-                if (input.is(":checked")) {
-                    form_inputs[input.attr("name")] = {
-                        id : input.attr("id") ,
-                        type : input.attr("type") ,
-                        value : input.val() ,
-                        name : input.attr("name")
-                    }
-                } 
-            } else 
-            if (addressDetails.indexOf(input.attr("name")) !== -1) {
-                if (!form_inputs.hasOwnProperty(`entryAddress`)) {
-                    form_inputs[`entryAddress`] = {
-                        name : `entryAddress` ,
-                        type : `object` ,
-                        value : {}
-                    };
-                }
-                form_inputs[`entryAddress`][`value`][input.attr("name")] = {
-                    id : input.attr("id") ,
-                    type : input.attr("type") ,
-                    value : input.val() ,
-                    name : input.attr("name")
-                }
-            } else {
-                form_inputs[input.attr("name")] = {
-                    id : input.attr("id") ,
-                    type : input.attr("type") ,
-                    value : input.val() ,
-                    name : input.attr("name")
-                }
-            }
-        });
-        return form_inputs;
-    }
-
-    function verifyAcceptableUserInputs(form_inputs) {
-        // Verifies all text-based fields in the form_inputs object satisfy standards set in verifyInput. 
-        // Returns true if all fields fulfill standards.
-        let verified = true;
-
-        $(`.notification_section`).addClass(`hidden`);
-        Object.keys(form_inputs).forEach(function(input) {
-            const result = verifyInput(form_inputs[input]);
-            if (result !== "Accepted") {
-                highlightTextbox(form_inputs[input].id);
-                notifyUser(result);
-                verified = false;
-            } else {
-                removeHighlightTextbox(form_inputs[input].id);
-            }
-        });
-        return verified;
-    }
-
-    function verifyInput(input) {
-        // Reads in input, uses input.name to determine what kind of tests the input must go through to be considered valid.
-        let result = "Accepted";
-        if (input.type === "text") {
-            if ((input.name === "searchMileRadius") && Number.isNaN(parseInt(input.value))) {
-                result = "The Mile Radius must be a number.";
-            } else
-            if (input.name === "searchMileRadius" && parseInt(input.value) > 40) {
-                result = "The Mile Radius must be 40 or less.";
-            } else
-            if ((input.name === "entryZipcode" || input.name === "searchZipcode") && Number.isNaN(parseInt(input.value))) {
-                result = "The zipcode must be a number.";
-            }
-            if ((input.name === "entryZipcode" || input.name === "searchZipcode") && input.value.length !== 5) {
-                result = "The zipcode must be five digits long.";
-            }
-        } else
-        if (input.name === `entryAddress`) {
-            Object.keys(input.value).forEach(function(addressInput) {
-                if ((addressInput === "entryZipcode") && Number.isNaN(parseInt(input[`value`][addressInput].value))) {
-                    result = "The zipcode must be a number.";
-                }
-            });
-        }
-        return result;
-    }
-
-     function highlightTextbox(textbox) {
-        // Adds CSS to the textbox input (through the highlighted class) to make it stand out to the user, making it clear which textbox needs to be changed.
-        $(`#${textbox}`).addClass("highlighted");
-     }
-
-    function removeHighlightTextbox(textbox) {
-        // Removes CSS to the textbox input (through the highlighted class).
-        $(`#${textbox}`).removeClass("highlighted");
-    }
-
-     function notifyUser(message) {
-         // Unhides the notification section and posts the message String.
-         unhideSection(`notification_section`);
-         $(`.notification_section`).html(`
-         <p>${message}</p>
-         `);
-     };
-
-    /**                 PAGE SPECIFIC FUNCTIONS                     **/
+    ////////////////////  2: Page specific functions  /////////////////////////////
 
     function handleStatusTabClick() {
         // When user clicks the Status Tab: loads the Status Section.
@@ -308,6 +122,27 @@ function main() {
             .catch(error => {
                 notifyUser(`Your session appears to have ended. Refresh and try again.`);
             });
+        });
+    }
+
+    function loadStatusSection() {
+        // Gathers USER_ENTRIES, then displays them if they're present.
+        // This function can load the HTML by clicking the Status Tab (route from handleStatusTabClick) 
+        // or from intial page load (initializePage).
+        getUserEntries()
+        .then(() => {
+            hideAllSections();
+            unhideSection(`status_section`);
+            setFrontPageImageHeight(`status_section`);
+            CURRENT_ENTRY_SOURCE = `USER_ENTRIES`;
+            if (USER_ENTRIES.length > 0) {
+                displayStatusSection();
+            } else {
+                displayEmptyStatus();
+            }
+        })
+        .catch(() => {
+            notifyUser(`Unable to find your entries.  Logout and try again.`);
         });
     }
 
@@ -497,7 +332,7 @@ function main() {
         $("main").on("click", ".view_entry_button", function(event) {
             checkAuthorizedUser()
             .then(() => {
-                getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in <he.
+                getEntryInfoFromEntryId($(event.currentTarget).attr("value"));  // the entry's entryId was stored in value.
                 hideAllSections();
                 unhideSection(`view_entry_section`);
                 setFrontPageImageHeight('view_entry_section');
@@ -544,11 +379,6 @@ function main() {
 
             );
         }
-    }
-
-    function stringifyEntryAddress(addressObject) {
-        // Takes the object addressObject and combines all the address info within it into a single string for the user.
-        return `${addressObject.entryStreetAddress}, ${addressObject.entryCity}, ${addressObject.entryState}, ${addressObject.entryZipcode}`;
     }
 
     function handleUpdateEntryButtonClick() {
@@ -675,66 +505,6 @@ function main() {
         });
     }
 
-    function getNearbyZipcodes(form_inputs) {
-        // Makes a request to the server, which makes a request to the Geonames API, 
-        // Given zipcode and mile radius in form_inputs, gets 15 nearest zipcodes.
-        // Returns a promise with an array of zipcodes.
-        let zipcodes = [];
-        const quantity = 15;
-
-        let initZipCode = form_inputs["searchZipcode"].value;
-        let radius = (form_inputs["searchMileRadius"].value);
-        const key = "6g4fkdzmkwnn8axr";                 // Account established through Cory!
-        const country = "U";                         // We are assuming we're working in the United States for now.
-        return fetch(`https://www.zipwise.com/webservices/radius.php?key=${key}&zip=${initZipCode}&radius=${radius}&country=${country}&format=json`)
-        .then(response => response.json())
-        .then(data => {
-            const areas = data.results.slice(0, quantity); //results obj is an array of objects, each object has a "zip" key, among other things.
-            areas.forEach(function(area) {
-                zipcodes.push(area.zip);
-            });
-            return zipcodes;
-        })
-        .catch(error => {
-            alert(`Zipwise API not returning everything properly.`);
-            return error;
-        });
-    }
-
-    function getSearchEntries(zipCodes, form_inputs) {
-        // Given an array of zipcodes and a string role, this makes a GET request for all entries in database with zipcode and role.
-        // Getting serialized information on the entries of a specific zipcode to store in SEARCH_ENTRIES.
-        const role = form_inputs["entryRole"].value;
-        if (zipCodes.length === 0) {
-            notifyUser(`${form_inputs["searchZipcode"].value} is not a valid zipcode!`);
-            return Promise.reject();
-        } else {
-            const concurrentPromises = zipCodes.map(zipcode => {
-                return getEntriesByZipcode(zipcode, role);
-            });
-            
-            return Promise.all(concurrentPromises)
-            .then(res => {
-                return res;
-            })
-            .catch((error) => {
-                return error.message;
-            });
-        }
-    }
-
-    function getEntriesByZipcode(zipcode, role) {
-        // Given a zipcode and role, makes a GET request to the server for entries.
-        return fetch(`/entries?entryZipcode=${zipcode}&entryRole=${role}`, {method : "GET"})
-        .then(response => response.json())
-        .then(res => {
-            return res;
-        })
-        .catch(error => {
-            return error.message;
-        });
-    }
-
     function displaySearchResultSection(entries) {
         // Display each entry from SEARCH_ENTRIES.
         $(`.search_results_section`).html(
@@ -838,28 +608,6 @@ function main() {
         return entryInfo;
     }
 
-    function postEntryToDatabase(entryInfo) {
-        // Post entry (entryInfo) into the server database.
-        return fetch(`/entries`, {method: "POST", body: JSON.stringify(entryInfo), headers : {"content-type": "application/json"}})
-        .then(response => response.json())
-        .catch(error => {
-            return error.message;
-        });
-    }
-
-    function addEntryToUserEntries(entryInfo) {
-        // Add entry to USER_ENTRIES. First checks to make sure entry isn't in USER_ENTRIES already.
-        let newEntry = true;
-        for (let entry in USER_ENTRIES) {
-            if (entry[`entryId`] === entryInfo[`entryId`]) {
-                newEntry = false;
-            }
-        }
-        if (newEntry === true) {
-            USER_ENTRIES.push(entryInfo);
-        }
-    }
-
     function handleSubmitUpdatedEntryButtonClick() {
         // When user clicks the Submit Updated Entry button on the Update Entry page, validates fields, then updates the information
         // in the server. Makes the edits to the locally stored entry as well. Shows the updated entry.
@@ -912,29 +660,6 @@ function main() {
         return updatedEntry;
     }
 
-    function updateEntryToDatabase(entryInfo) {
-        // Updates the entry in the server database.
-        return fetch(`/entries/${entryInfo.entryId}`, {method : "PUT", body : JSON.stringify(entryInfo), headers : {"content-type" : "application/json"}})
-        .then(response => response.json())
-        .then(res => {
-            return res;
-        })
-        .catch(error => {
-            return error.message;
-        });
-    }
-
-    function updateEntryInUserEntries(updatedEntry) {
-        // Find entryId from USER_ENTRIES and refill information.
-        // Doesn't replace fields one by one; simply replaces the entire entry.  Could alter if needed.
-        let userEntryIndex = USER_ENTRIES.find((entry, index) => {
-            if (updatedEntry.entryId === entry.entryId) {
-                return index;
-            }
-        });
-        USER_ENTRIES[userEntryIndex] = updatedEntry;
-    }
-
     function handleDeleteButtonClick() {
         // When the delete button is clicked while the user views it, removes the entry from the database and USER_ENTRIES.
         $("main").on("click", ".delete_entry_button", function(event) {
@@ -962,6 +687,102 @@ function main() {
         });
     }
 
+    function handleBackButtonClick() {
+        // When user clicks the back button on the View Entry or Update Entry sections, sends user back to previous section.
+        $(`.view_entry_section`).on(`click`, `.back_button`, function() {
+            checkAuthorizedUser()
+            .then(() => {
+                loadSourceSection();
+            })
+            .catch(() => {
+                notifyUser(`Your session appears to have ended. Refresh and try again.`);
+            });
+        });
+    }
+
+    //////////////////// 3: API request functions /////////////////////////////
+
+    function getNearbyZipcodes(form_inputs) {
+        // Makes a request to the server, which makes a request to the Zipwise API, 
+        // Given zipcode and mile radius in form_inputs, gets 15 nearest zipcodes.
+        // Returns a promise with an array of zipcodes.
+        let zipcodes = [];
+        const quantity = 15;
+
+        let initZipCode = form_inputs["searchZipcode"].value;
+        let radius = (form_inputs["searchMileRadius"].value);
+        const key = "6g4fkdzmkwnn8axr";                 // Account established through Cory!
+        const country = "U";                         // We are assuming we're working in the United States for now.
+        return fetch(`https://www.zipwise.com/webservices/radius.php?key=${key}&zip=${initZipCode}&radius=${radius}&country=${country}&format=json`)
+        .then(response => response.json())
+        .then(data => {
+            const areas = data.results.slice(0, quantity); //results obj is an array of objects, each object has a "zip" key, among other things.
+            areas.forEach(function(area) {
+                zipcodes.push(area.zip);
+            });
+            return zipcodes;
+        })
+        .catch(error => {
+            alert(`Zipwise API not returning everything properly.`);
+            return error;
+        });
+    }
+
+    function getSearchEntries(zipCodes, form_inputs) {
+        // Given an array of zipcodes and a string role, this makes a GET request for all entries in database with zipcode and role.
+        // Getting serialized information on the entries of a specific zipcode to store in SEARCH_ENTRIES.
+        const role = form_inputs["entryRole"].value;
+        if (zipCodes.length === 0) {
+            notifyUser(`${form_inputs["searchZipcode"].value} is not a valid zipcode!`);
+            return Promise.reject();
+        } else {
+            const concurrentPromises = zipCodes.map(zipcode => {
+                return getEntriesByZipcode(zipcode, role);
+            });
+            
+            return Promise.all(concurrentPromises)
+            .then(res => {
+                return res;
+            })
+            .catch((error) => {
+                return error.message;
+            });
+        }
+    }
+
+    function getEntriesByZipcode(zipcode, role) {
+        // Given a single zipcode and role, makes a GET request to the server for entries.
+        return fetch(`/entries?entryZipcode=${zipcode}&entryRole=${role}`, {method : "GET"})
+        .then(response => response.json())
+        .then(res => {
+            return res;
+        })
+        .catch(error => {
+            return error.message;
+        });
+    }
+
+    function postEntryToDatabase(entryInfo) {
+        // Post entry (entryInfo) into the server database.
+        return fetch(`/entries`, {method: "POST", body: JSON.stringify(entryInfo), headers : {"content-type": "application/json"}})
+        .then(response => response.json())
+        .catch(error => {
+            return error.message;
+        });
+    }
+
+    function updateEntryToDatabase(entryInfo) {
+        // Updates the entry in the server database.
+        return fetch(`/entries/${entryInfo.entryId}`, {method : "PUT", body : JSON.stringify(entryInfo), headers : {"content-type" : "application/json"}})
+        .then(response => response.json())
+        .then(res => {
+            return res;
+        })
+        .catch(error => {
+            return error.message;
+        });
+    }
+
     function deleteEntryInDatabase(entryId) {
         // Makes a DELETE request to the database for the id specified.
         return fetch(`entries/${entryId}`, {method : "DELETE"})
@@ -969,6 +790,32 @@ function main() {
         .catch(error => {
             return error.message;
         });
+    }
+
+    //////////////////// 4: Global storage functions /////////////////////////////
+
+    function addEntryToUserEntries(entryInfo) {
+        // Add entry to USER_ENTRIES. First checks to make sure entry isn't in USER_ENTRIES already.
+        let newEntry = true;
+        for (let entry in USER_ENTRIES) {
+            if (entry[`entryId`] === entryInfo[`entryId`]) {
+                newEntry = false;
+            }
+        }
+        if (newEntry === true) {
+            USER_ENTRIES.push(entryInfo);
+        }
+    }
+
+    function updateEntryInUserEntries(updatedEntry) {
+        // Find entryId from USER_ENTRIES and refill information.
+        // Doesn't replace fields one by one; simply replaces the entire entry.  Could alter if needed.
+        let userEntryIndex = USER_ENTRIES.find((entry, index) => {
+            if (updatedEntry.entryId === entry.entryId) {
+                return index;
+            }
+        });
+        USER_ENTRIES[userEntryIndex] = updatedEntry;
     }
 
     function deleteEntryInUserEntries(deletingEntryId) {
@@ -999,17 +846,180 @@ function main() {
         }
     }
 
-    function handleBackButtonClick() {
-        // When user clicks the back button on the View Entry or Update Entry sections, sends user back to previous section.
-        $(`.view_entry_section`).on(`click`, `.back_button`, function() {
-            checkAuthorizedUser()
-            .then(() => {
-                loadSourceSection();
-            })
-            .catch(() => {
-                notifyUser(`Your session appears to have ended. Refresh and try again.`);
+    //////////////////// 5: Versatile functions /////////////////////////////
+    function getEntryInfoFromEntryId(id) {
+        // Get's the object with entryId "id" from USER_ENTRIES or SEARCH_ENTRIES, depending on which section user was in when accessing entry.
+        if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
+            USER_ENTRIES.forEach(entry => {
+                if (entry.entryId === id) {
+                    CURRENT_ENTRY = entry;
+                }
             });
+        } else  
+        if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
+            SEARCH_ENTRIES.forEach(entry => {
+                if (entry.entryId === id) {
+                    CURRENT_ENTRY = entry;
+                }
+            });
+        }
+    }
+    
+    function gatherUserInputs(section) {
+        // Given a section, parses through all the inputs in the section (likely in a form), and stores any details about the input into object
+        // form_inputs.  Notice the addressDetails array, any inputs with a name in addressDetails gets placed into an object with form_inputs
+        // called entryAddress.
+        let form_inputs = {};
+
+        const addressDetails = [`entryStreetAddress`,`entryCity`,`entryState`,`entryCountry`,`entryZipcode`];
+        $(`.${section} input`).each(function() {
+            let input = $(this);
+            if (input.attr("type") === "radio") {
+                if (input.is(":checked")) {
+                    form_inputs[input.attr("name")] = {
+                        id : input.attr("id") ,
+                        type : input.attr("type") ,
+                        value : input.val() ,
+                        name : input.attr("name")
+                    }
+                } 
+            } else 
+            if (addressDetails.indexOf(input.attr("name")) !== -1) {
+                if (!form_inputs.hasOwnProperty(`entryAddress`)) {
+                    form_inputs[`entryAddress`] = {
+                        name : `entryAddress` ,
+                        type : `object` ,
+                        value : {}
+                    };
+                }
+                form_inputs[`entryAddress`][`value`][input.attr("name")] = {
+                    id : input.attr("id") ,
+                    type : input.attr("type") ,
+                    value : input.val() ,
+                    name : input.attr("name")
+                }
+            } else {
+                form_inputs[input.attr("name")] = {
+                    id : input.attr("id") ,
+                    type : input.attr("type") ,
+                    value : input.val() ,
+                    name : input.attr("name")
+                }
+            }
         });
+        return form_inputs;
+    }
+
+    function verifyAcceptableUserInputs(form_inputs) {
+        // Verifies all text-based fields in the form_inputs object satisfy standards set in verifyInput. 
+        // Returns true if all fields fulfill standards.
+        let verified = true;
+
+        $(`.notification_section`).addClass(`hidden`);
+        Object.keys(form_inputs).forEach(function(input) {
+            const result = verifyInput(form_inputs[input]);
+            if (result !== "Accepted") {
+                highlightTextbox(form_inputs[input].id);
+                notifyUser(result);
+                verified = false;
+            } else {
+                removeHighlightTextbox(form_inputs[input].id);
+            }
+        });
+        return verified;
+    }
+
+    function highlightTextbox(textbox) {
+        // Adds CSS to the textbox input (through the highlighted class) to make it stand out to the user, making it clear which textbox needs to be changed.
+        $(`#${textbox}`).addClass("highlighted");
+    }
+
+    function removeHighlightTextbox(textbox) {
+        // Removes CSS to the textbox input (through the highlighted class).
+        $(`#${textbox}`).removeClass("highlighted");
+    }
+
+    function verifyInput(input) {
+        // Reads in input, uses input.name to determine what kind of tests the input must go through to be considered valid.
+        let result = "Accepted";
+        if (input.type === "text") {
+            if ((input.name === "searchMileRadius") && Number.isNaN(parseInt(input.value))) {
+                result = "The Mile Radius must be a number.";
+            } else
+            if (input.name === "searchMileRadius" && parseInt(input.value) > 40) {
+                result = "The Mile Radius must be 40 or less.";
+            } else
+            if ((input.name === "entryZipcode" || input.name === "searchZipcode") && Number.isNaN(parseInt(input.value))) {
+                result = "The zipcode must be a number.";
+            }
+            if ((input.name === "entryZipcode" || input.name === "searchZipcode") && input.value.length !== 5) {
+                result = "The zipcode must be five digits long.";
+            }
+        } else
+        if (input.name === `entryAddress`) {
+            Object.keys(input.value).forEach(function(addressInput) {
+                if ((addressInput === "entryZipcode") && Number.isNaN(parseInt(input[`value`][addressInput].value))) {
+                    result = "The zipcode must be a number.";
+                }
+            });
+        }
+        return result;
+    }
+
+    function loadSourceSection() {
+        // Function used after updating or deleting an entry. Depending on whether the user was in the Status section
+        // or the Search section prior to updating/deleting an entry, user is returned there.
+        if (CURRENT_ENTRY_SOURCE === `USER_ENTRIES`) {
+            hideAllSections();
+            unhideSection(`status_section`);
+            setFrontPageImageHeight('status_section');
+            loadStatusSection();
+        } else
+        if (CURRENT_ENTRY_SOURCE === `SEARCH_ENTRIES`) {
+            hideAllSections();
+            unhideSection(`search_entry_section`);
+            unhideSection(`search_results_section`);
+            setFrontPageImageHeight('search_entry_section');
+            displaySearchEntrySection();
+            displaySearchResultSection(SEARCH_ENTRIES);  // Chose not to simply unhide this section, as it may be updated. Updating HTML.  
+        }
+    }
+
+    function stringifyEntryAddress(addressObject) {
+        // Takes the object addressObject and combines all the address info within it into a single string for the user.
+        return `${addressObject.entryStreetAddress}, ${addressObject.entryCity}, ${addressObject.entryState}, ${addressObject.entryZipcode}`;
+    }
+
+    function notifyUser(message) {
+        // Unhides the notification section and posts the message String.
+        unhideSection(`notification_section`);
+        $(`.notification_section`).html(`
+        <p>${message}</p>
+        `);
+    };
+
+    function setFrontPageImageHeight(section) {
+        // Changes the sizing of the background image and overlay, based on which section is loaded. 
+        // Typically longer sections make the background expand to wrap around section.
+        if (section === 'create_new_entry_section' || section === 'update_entry_section') {
+            $(`#front-image-container`).css("height", `auto`);
+        } else {
+            $(`#front-image-container`).css("height", `100%`);
+        }
+    }
+
+    function hideAllSections() {
+        // Adds the `hidden` CSS class (which has display:none) from all sections, making them invisible in the HTML.
+        const sections = [`notification_section`,`status_section`, `create_new_entry_section`, `search_entry_section`, `search_results_section`, `view_entry_section`, `update_entry_section`];
+        sections.forEach(section => {
+            $(`.${section}`).addClass(`hidden`);
+            $(`.${section}`).empty();
+        })
+    }
+
+    function unhideSection(section) {
+        // Removes the `hidden` CSS class (which has display:none) from the argument `section` to make it visible in the HTML.
+        $(`.${section}`).removeClass(`hidden`);
     }
 
     $(initializePage());
