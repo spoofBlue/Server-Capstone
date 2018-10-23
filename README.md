@@ -1,7 +1,7 @@
 # Server-Capstone
 
 Live App link: https://mighty-falls-28563.herokuapp.com/ 
-(If you would like an account with entries already included, sign in with the username "Bobby" and the password "hellohello" without the quotation marks. When searching for entries, use the zipcode "12345" click the "Receivers" radio button.)
+(If you would like an account with entries already included, sign in with the username "Bobby" and the password "hellohello" without the quotation marks. When searching for entries, use the zipcode "12345", both the "Donator" and "Receiver" radio buttons show results.)
 
 Quick Project Summary:
 This is my project site called Harvest United.  The goal of the site is to connect restaurants and markets that naturally hold excess food, with non-profit organizations (food shelters, soup kitchens) for a food exchange.
@@ -61,15 +61,27 @@ Reflection / Things I would have done differently:
 - One mistake I had in created the CSS for this project was not designing mobile-first; as a result, I make media-queries accounting for smaller screen sizes to correct this.  In a thorough update of this project, and in future projects, I will have this mindset.
 - I used the Materialize CSS-framework for this project.  Although it was helpful in some regards (it brought in pre-made fade-effects and animations), it also brought in some annoying properties which I had to correct forcefully (through the CSS !important affix).  It may have been worth opting out of the use of Materialize. Pros and Cons.
 ______________________________________________________________
-Screenshots: See the ScreenImages document.
+Screenshots:
 
-The login page – You’re also able to create a new account form this page. Utilize a collapsible menu.  If you are unauthenticated and attempt to access the main.html page, you’re automatically redirected here.
+The login section – You’re also able to create a new account form this page. Utilize a collapsible menu.  If you are unauthenticated and attempt to access the main.html page, you’re automatically redirected here.
 
-The main page - You’re able to access any of your entries from here.  The top navigation bar enables you to create a new entry, search for entries, or log out.
+[![login-section](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/login-section-image.png)](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/login-section-image.png)
 
-The view entry page - When you click to view an entry (whether it’s yours or not), you are able to see the details of the entry. If the entry belongs to the user who viewed it, they’re also able to edit or delete the entry.
+The main section - You’re able to access any of your entries from here.  The top navigation bar enables you to create a new entry, search for entries, or log out.
 
-The create entry/ update entry page - When you create an entry, or update a current entry, a form appears. It’s prepopulated with your previously entered information (just contact info if creating an entry, but shows all your current info if updating your entry).
+[![main-section](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/main-section.png)](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/main-section.png)
+
+The view entry section - When you click to view an entry (whether it’s yours or not), you are able to see the details of the entry. If the entry belongs to the user who viewed it, they’re also able to edit or delete the entry.
+
+[![view-entry-section](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/view-entry-section.png)](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/view-entry-section.png)
+
+The create entry/ update entry section - When you create an entry, or update a current entry, a form appears. It’s prepopulated with your previously entered information (just contact info if creating an entry, but shows all your current info if updating your entry).
 The search page allows you to search based on zipcode, and whether you’re looking for donators or receivers.  You can then view any of the search results.  You’re able to update/delete any of your entries that show up in the search.
 
-The search entry page - Allows you to search based on zip code, and whether you’re looking for donators or receivers.  You can then view any of the search results.  You’re able to update/delete any of your entries that show up in the search.
+[![create-entry-section](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/create-entry-section.png)](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/create-entry-section.png)
+
+The search entry section - Allows you to search based on zip code, and whether you’re looking for donators or receivers.  You can then view any of the search results.  You’re able to update/delete any of your entries that show up in the search.
+
+[![search-section](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/search-section.png)](https://github.com/spoofBlue/Server-Capstone/blob/master/screenshots/search-section.png)
+
+I hope you enjoyed this project, I learned so much from this project, and I can't wait to tackle another!
