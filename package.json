@@ -1,5 +1,5 @@
 {
-  "name": "server-capstone", 
+  "name": "server-capstone",
   "version": "1.0.0",
   "description": "Cory's project to showcase server and database expertise.",
   "main": "server.js",
@@ -13,8 +13,8 @@
     "faker": "^4.1.0",
     "jsonwebtoken": "^8.3.0",
     "mocha": "^5.2.0",
-    "mongoose": "^5.2.2",
-    "morgan": "^1.9.0",
+    "mongoose": "^5.5.0",
+    "morgan": "^1.9.1",
     "node-fetch": "^2.2.0",
     "node-pre-gyp": "^0.11.0",
     "passport": "^0.4.0",

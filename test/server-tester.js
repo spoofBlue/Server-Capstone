@@ -7,20 +7,20 @@ const mongoose = require(`mongoose`);
 
 mongoose.Promise = global.Promise;
 
-const {app} = require(`../server`);
+const { app } = require(`../server`);
 
 const expect = chai.expect;
 
 chai.use(chaiHttp);
 
-describe(`Server Test`, function(){
-    it(`should return true no matter what`, function() {
+describe(`Server Test`, function () {
+    it(`should return true no matter what`, function () {
         return chai.request(app)
-        .get(`/`)
-        .then(function(res) {
-            console.log(res.body);
-            expect(res).to.have.status(200);
-        })
+            .get(`/`)
+            .then(function (res) {
+                console.log(res.body);
+                expect(res).to.have.status(200);
+            })
     });
 });
 
